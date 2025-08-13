@@ -97,10 +97,11 @@ def signup():
     conn = get_db_connection()
 
     if request.method == "POST":
+        roll_no = request.form["roll_no"].strip()
         username = request.form["username"].strip()
         password = request.form["password"].strip()
 
-        if not username or not password:
+        if not roll_no or not username or not password:
             flash("All fields are required.", "error")
             conn.close()
             return redirect(url_for("signup"))
@@ -111,36 +112,42 @@ def signup():
         if user:
             if user["password"] == "":
                 conn.execute(
-                    "UPDATE users SET password=?, is_logged_in=1 WHERE username=?",
-                    (hashed_pw, username)
+                    "UPDATE users SET roll_no=?, password=?, is_logged_in=1 WHERE username=?",
+                    (roll_no, hashed_pw, username)
                 )
                 conn.commit()
-                conn.close()
                 session.clear()
                 session["username"] = username
                 flash("Signup successful! You are now logged in.", "success")
+                conn.close()
                 return redirect(url_for("home"))
             else:
-                conn.close()
                 flash("Username already exists.", "error")
+                conn.close()
                 return redirect(url_for("signup"))
         else:
             conn.execute(
-                "INSERT INTO users (username, password, is_logged_in) VALUES (?, ?, 1)",
-                (username, hashed_pw)
+                "INSERT INTO users (roll_no, username, password, is_logged_in) VALUES (?, ?, ?, 1)",
+                (roll_no, username, hashed_pw)
             )
             conn.commit()
-            conn.close()
             session.clear()
             session["username"] = username
             flash("Signup successful! You are now logged in.", "success")
+            conn.close()
             return redirect(url_for("home"))
 
-    # GET request: populate dropdown with usernames that have empty password
+    # GET request
     users = conn.execute("SELECT username FROM users WHERE password=''").fetchall()
     usernames = [row["username"] for row in users]
+
+    # Predefined usernames fallback
+    if not usernames:
+        usernames = ["user1", "user2", "user3", "user4"]
+
     conn.close()
     return render_template("signup.html", usernames=usernames)
+
 
 @app.route("/logout")
 def logout():
