@@ -6,6 +6,8 @@
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 </head>
 <body class="bg-gray-50 font-sans min-h-screen">
+
+  <!-- Header -->
   <header class="flex items-center justify-between bg-white shadow p-4">
     <div class="flex items-center gap-4">
       <h1 class="font-bold text-xl">Peer Support</h1>
@@ -21,8 +23,10 @@
     </div>
   </header>
 
+  <!-- Main content -->
   <main class="p-6 max-w-3xl mx-auto">
-    <!-- Post new question -->
+
+    <!-- Ask new question -->
     <div class="bg-white p-4 mb-6 rounded shadow">
       <h2 class="text-xl font-bold mb-2">Ask a New Question</h2>
       <form method="POST" action="{{ url_for('questions') }}">
@@ -31,44 +35,31 @@
       </form>
     </div>
 
-    <!-- My questions and answers -->
+    <!-- My Questions -->
     <h2 class="text-2xl font-bold mb-4">My Questions</h2>
 
-<!-- Post new question -->
-<form method="POST" class="mb-4">
-  <input type="text" name="question" placeholder="Ask a question..." class="border rounded px-2 py-1 w-full" required>
-  <button type="submit" class="bg-green-600 text-white px-3 py-1 rounded mt-1">Post Question</button>
-</form>
+    {% for q in questions %}
+      <div class="bg-white p-4 mb-4 rounded shadow">
+        <p class="font-medium">{{ q.question }}</p>
+        <p class="text-gray-500 text-sm mb-2">{{ q.answers|length }} Answers</p>
 
-<!-- List my questions -->
-{% for q in questions %}
-  <div class="bg-white p-4 mb-4 rounded shadow">
-    <p class="font-medium">{{ q.question }}</p>
-    <p class="text-gray-500 text-sm mb-2">{{ q.answers|length }} Answers</p>
-
-    {% for ans in q.answers %}
-      <div class="ml-4 mb-2 p-2 bg-gray-50 rounded flex justify-between items-center">
-        <span><strong>{{ ans.username }}:</strong> {{ ans.answer }}</span>
-        {% if ans.username != username %}
-          <form method="POST" action="{{ url_for('give_karma', answer_id=ans.id) }}">
-            <button class="text-blue-600 text-sm">Reward 💚 ({{ ans.karma }})</button>
-          </form>
-        {% else %}
-          <span class="text-green-600 font-bold">{{ ans.karma }} 💚</span>
-        {% endif %}
+        {% for ans in q.answers %}
+          <div class="ml-4 mb-2 p-2 bg-gray-50 rounded flex justify-between items-center">
+            <span><strong>{{ ans.username }}:</strong> {{ ans.answer }}</span>
+            {% if ans.username != username %}
+              <form method="POST" action="{{ url_for('give_karma', answer_id=ans.id) }}">
+                <button class="text-blue-600 text-sm">Reward 💚 ({{ ans.karma }})</button>
+              </form>
+            {% else %}
+              <span class="text-green-600 font-bold">{{ ans.karma }} 💚</span>
+            {% endif %}
+          </div>
+        {% endfor %}
       </div>
-    {% endfor %}
-  </div>
-{% else %}
-  <p class="text-gray-600">You haven’t posted any questions yet.</p>
-{% endfor %}
-
-
-        </div>
-      {% endfor %}
     {% else %}
       <p class="text-gray-600">You haven’t posted any questions yet.</p>
-    {% endif %}
+    {% endfor %}
+
   </main>
 </body>
 </html>
