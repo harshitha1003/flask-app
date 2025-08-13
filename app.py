@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 import sqlite3
 import hashlib
 import os
+from functools import wraps
 
 # -----------------------
 # Flask app setup
@@ -25,10 +26,23 @@ def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
 # -----------------------
+# Login required decorator
+# -----------------------
+def login_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if "username" not in session:
+            flash("Please log in first.", "error")
+            return redirect(url_for("login"))
+        return f(*args, **kwargs)
+    return decorated
+
+# -----------------------
 # Initialize DB and predefined usernames
 # -----------------------
 def init_db():
     conn = get_db_connection()
+    # Users table
     conn.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -36,6 +50,15 @@ def init_db():
             username TEXT UNIQUE NOT NULL,
             password TEXT,
             is_logged_in INTEGER DEFAULT 0
+        )
+    """)
+    # Questions table
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS questions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL,
+            question TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
 
@@ -61,15 +84,11 @@ init_db()
 # -----------------------
 @app.route("/")
 def index():
-    if "username" in session:
-        return redirect(url_for("home"))
     return redirect(url_for("login"))
 
 @app.route("/home")
+@login_required
 def home():
-    if "username" not in session:
-        flash("Please log in first.", "error")
-        return redirect(url_for("login"))
     return render_template("home.html", username=session["username"])
 
 @app.route("/login", methods=["GET", "POST"])
@@ -129,7 +148,7 @@ def signup():
                 conn.close()
                 return redirect(url_for("signup"))
         else:
-            # Optional: allow creating completely new username
+            # Allow creating completely new username
             conn.execute(
                 "INSERT INTO users (roll_no, username, password) VALUES (?, ?, ?)",
                 (roll_no, username, hashed_pw)
@@ -142,42 +161,31 @@ def signup():
     # GET request: fetch usernames with empty passwords
     users = conn.execute("SELECT username FROM users WHERE password=''").fetchall()
     usernames = [row["username"] for row in users]
-
-    # Fallback if none left
-    if not usernames:
-        usernames = []
-
     conn.close()
     return render_template("signup.html", usernames=usernames)
 
 @app.route("/logout")
+@login_required
 def logout():
-    if "username" in session:
-        conn = get_db_connection()
-        conn.execute("UPDATE users SET is_logged_in=0 WHERE username=?", (session["username"],))
-        conn.commit()
-        conn.close()
+    conn = get_db_connection()
+    conn.execute("UPDATE users SET is_logged_in=0 WHERE username=?", (session["username"],))
+    conn.commit()
+    conn.close()
     session.clear()
     flash("You have been logged out.", "info")
     return redirect(url_for("login"))
 
 @app.route("/people")
+@login_required
 def people():
-    if "username" not in session:
-        flash("Please log in first.", "error")
-        return redirect(url_for("login"))
-
     conn = get_db_connection()
     users = conn.execute("SELECT username FROM users WHERE is_logged_in=1").fetchall()
     conn.close()
-    
     return render_template("people.html", users=users)
-@app.route("/questions", methods=["GET", "POST"])
-def questions():
-    if "username" not in session:
-        flash("Please log in first.", "error")
-        return redirect(url_for("login"))
 
+@app.route("/questions", methods=["GET", "POST"])
+@login_required
+def questions():
     conn = get_db_connection()
 
     if request.method == "POST":
@@ -196,7 +204,6 @@ def questions():
     conn.close()
     
     return render_template("questions.html", questions=all_questions)
-
 
 # -----------------------
 # Run app
