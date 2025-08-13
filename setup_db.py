@@ -1,13 +1,32 @@
 import sqlite3
 
-# Connect to database
 conn = sqlite3.connect("users.db")
 cursor = conn.cursor()
 
-# List of predefined usernames to add
+# Create users table if not exists
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    roll_no TEXT,
+    username TEXT UNIQUE NOT NULL,
+    password TEXT,
+    is_logged_in INTEGER DEFAULT 0
+)
+""")
+
+# Create questions table if not exists
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS questions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL,
+    question TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)
+""")
+
+# Predefined usernames with empty passwords
 predefined_usernames = ["user1", "user2", "user3", "user4"]
 
-# Insert usernames with empty password
 for username in predefined_usernames:
     try:
         cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, ""))
@@ -15,7 +34,6 @@ for username in predefined_usernames:
     except sqlite3.IntegrityError:
         print(f"Username {username} already exists, skipping.")
 
-# Commit and close
 conn.commit()
 conn.close()
-print("Done adding predefined usernames.")
+print("Setup complete!")
