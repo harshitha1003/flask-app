@@ -116,15 +116,9 @@ def login():
         if user and user["password"] == hashed_pw:
         session.clear()
         session["username"] = username
-    
-        # Mark user as logged in
-        conn = get_db_connection()
-        conn.execute("UPDATE users SET is_logged_in = 1 WHERE username=?", (username,))
-        conn.commit()
-        conn.close()
-    
-    flash("Login successful!", "success")
-    return redirect(url_for("home"))
+        flash("Login successful!", "success")
+        return redirect(url_for("home"))
+
 
 
     return render_template("login.html")
