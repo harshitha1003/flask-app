@@ -48,11 +48,10 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             roll_no TEXT,
             username TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL,
+            password TEXT,
             is_logged_in INTEGER DEFAULT 0
         )
     """)
-    ...
     # Questions table
     conn.execute("""
         CREATE TABLE IF NOT EXISTS questions (
@@ -76,9 +75,9 @@ def init_db():
         )
     """)
 
-    # Predefined users
-predefined_usernames = ["user1", "user2", "user3", "user4"]
+    predefined_usernames = ["user1", "user2", "user3", "user4"]
     default_password = hash_password("12345")
+
     for uname in predefined_usernames:
         try:
             conn.execute(
@@ -87,6 +86,7 @@ predefined_usernames = ["user1", "user2", "user3", "user4"]
             )
         except sqlite3.IntegrityError:
             pass
+
     conn.commit()
     conn.close()
 
@@ -128,9 +128,14 @@ def home():
             "SELECT id, username, answer, karma FROM answers WHERE question_id=? ORDER BY created_at ASC",
             (q["id"],)
         ).fetchall()
+        # Convert sqlite Row objects to dicts
         q_dict = dict(q)
         q_dict["answers"] = [dict(a) for a in answers]
         questions_with_answers.append(q_dict)
+
+    conn.close()
+    return render_template("home.html", username=session["username"], questions=questions_with_answers)
+
 
     conn.close()
     return render_template("home.html", username=session["username"], questions=questions_with_answers)
@@ -144,18 +149,18 @@ def login():
 
         conn = get_db_connection()
         user = conn.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
-        conn.close()
 
-        if user:
-            if user["password"] == hashed_pw:
-                session.clear()
-                session["username"] = username
-                flash("Login successful!", "success")
-                return redirect(url_for("home"))
-            else:
-                flash("Invalid username or password.", "error")
+        if user and user["password"] == hashed_pw:
+            conn.execute("UPDATE users SET is_logged_in=1 WHERE username=?", (username,))
+            conn.commit()
+            conn.close()
+            session.clear()
+            session["username"] = username
+            flash("Login successful!", "success")
+            return redirect(url_for("home"))
         else:
             flash("Invalid username or password.", "error")
+            conn.close()
 
     return render_template("login.html")
 
@@ -169,6 +174,7 @@ def signup():
 
         if not roll_no or not username or not password:
             flash("All fields are required.", "error")
+            conn.close()
             return redirect(url_for("signup"))
 
         hashed_pw = hash_password(password)
@@ -198,28 +204,18 @@ def signup():
             conn.close()
             return redirect(url_for("login"))
 
-# Only allow new username if it doesn't exist
-user = conn.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
-if user:
-    flash("Username already taken.", "error")
+    users = conn.execute("SELECT username FROM users WHERE password=''").fetchall()
+    usernames = [row["username"] for row in users]
     conn.close()
-    return redirect(url_for("signup"))
-
-# Insert new user
-hashed_pw = hash_password(password)
-conn.execute(
-    "INSERT INTO users (roll_no, username, password) VALUES (?, ?, ?)",
-    (roll_no, username, hashed_pw)
-)
-conn.commit()
-flash("Signup successful! Please log in.", "success")
-conn.close()
-return redirect(url_for("login"))
-
+    return render_template("signup.html", usernames=usernames)
 
 @app.route("/logout")
 @login_required
 def logout():
+    conn = get_db_connection()
+    conn.execute("UPDATE users SET is_logged_in=0 WHERE username=?", (session["username"],))
+    conn.commit()
+    conn.close()
     session.clear()
     flash("You have been logged out.", "info")
     return redirect(url_for("login"))
@@ -228,9 +224,9 @@ def logout():
 @login_required
 def people():
     conn = get_db_connection()
-    users = conn.execute("SELECT username FROM users").fetchall()
+    users = conn.execute("SELECT username FROM users WHERE is_logged_in=1").fetchall()
     conn.close()
-    return render_template("people.html", users=[u["username"] for u in users])
+    return render_template("people.html", users=users)
 
 @app.route("/questions", methods=["GET", "POST"])
 @login_required
@@ -247,22 +243,28 @@ def questions():
             conn.commit()
             flash("Question posted successfully!", "success")
 
+    # Fetch all questions
     all_questions = conn.execute(
-        "SELECT id, username, question, created_at FROM questions ORDER BY created_at DESC"
+        "SELECT q.id, q.username, q.question, q.created_at FROM questions q ORDER BY q.created_at DESC"
     ).fetchall()
 
+    # Attach answers to each question
     questions_with_answers = []
     for q in all_questions:
         answers = conn.execute(
-            "SELECT id, username, answer, karma FROM answers WHERE question_id=? ORDER BY created_at ASC",
+            "SELECT id, username, answer, karma FROM answers WHERE question_id=? ORDER BY created_at ASC", 
             (q["id"],)
         ).fetchall()
         q_dict = dict(q)
-        q_dict["answers"] = [dict(a) for a in answers]
+        q_dict["answers"] = [dict(a) for a in answers]  # convert answers to dict
         questions_with_answers.append(q_dict)
 
     conn.close()
+    
     return render_template("questions.html", questions=questions_with_answers, username=session["username"])
+
+
+
 
 @app.route("/answer/<int:question_id>", methods=["POST"])
 @login_required
@@ -287,7 +289,7 @@ def give_karma(answer_id):
     conn.commit()
     conn.close()
     flash("Karma point added!", "success")
-    return redirect(url_for("home"))  # show karma update only on home
+    return redirect(url_for("questions"))
 
 # -----------------------
 # Run app
@@ -295,5 +297,3 @@ def give_karma(answer_id):
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
-
-
