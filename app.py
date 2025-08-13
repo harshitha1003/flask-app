@@ -4,8 +4,7 @@ import hashlib
 import os
 
 app = Flask(__name__)
-app.secret_key = "your_secret_key"
-
+app.secret_key = "your_secret_key"  # Needed for flashing messages
 DB_PATH = "users.db"
 
 # -------------------------------
@@ -21,19 +20,16 @@ def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
 def init_db():
-    # Create DB and tables if not exist
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
-    # Predefined usernames table
+    # Create tables if they don't exist
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS predefined_usernames (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT UNIQUE
     )
     """)
-
-    # Users table
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -43,12 +39,12 @@ def init_db():
     )
     """)
 
-    # Insert default predefined usernames if table is empty
+    # Insert default usernames if table is empty
     cursor.execute("SELECT COUNT(*) FROM predefined_usernames")
     if cursor.fetchone()[0] == 0:
-        predefined_usernames = ["unicorn", "phoenix", "dragon", "griffin", "pegasus"]
-        for uname in predefined_usernames:
+        for uname in ["unicorn", "phoenix", "dragon", "griffin", "pegasus"]:
             cursor.execute("INSERT OR IGNORE INTO predefined_usernames (username) VALUES (?)", (uname,))
+
     conn.commit()
     conn.close()
 
@@ -89,12 +85,12 @@ def signup():
         except sqlite3.IntegrityError:
             flash("Username already taken!", "error")
 
-    # GET request: show available usernames
+    # Fetch available usernames for dropdown
     cursor.execute("""
         SELECT username FROM predefined_usernames
         WHERE username NOT IN (SELECT username FROM users)
     """)
-    available_users = cursor.fetchall()
+    available_users = [row['username'] for row in cursor.fetchall()]
     conn.close()
 
     return render_template("signup.html", available_users=available_users)
@@ -126,5 +122,4 @@ def login():
 # -------------------------------
 
 if __name__ == "__main__":
-    # Bind to 0.0.0.0 for Render
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
