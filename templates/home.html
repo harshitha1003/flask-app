@@ -26,20 +26,31 @@
 <main class="p-6 max-w-3xl mx-auto">
   <h2 class="text-2xl font-bold mb-4">My Questions</h2>
 
-  {% for q in my_questions %}
-    <div class="bg-white p-4 mb-4 rounded shadow">
-      <p class="font-medium">{{ q.question }}</p>
-      <p class="text-gray-500 text-sm mb-2">{{ q.answer_count }} Answers</p>
+<!-- Replace my_questions with questions -->
+{% for q in questions %}
+  <div class="bg-white p-4 mb-4 rounded shadow">
+    <p class="font-medium">{{ q.question }}</p>
+    <p class="text-gray-500 text-sm mb-2">{{ q.answers_count }} Answers</p>
 
-      {% for ans in answers_dict[q.id] %}
-        <div class="ml-4 mb-2 p-2 bg-gray-50 rounded flex justify-between items-center">
-          <span><strong>{{ ans.username }}:</strong> {{ ans.answer }}</span>
-          <div class="flex items-center gap-2">
-            <span class="text-green-600 font-bold">{{ ans.karma }} 💚</span>
-            <a href="{{ url_for('reward', answer_id=ans.id) }}" class="text-blue-600 text-sm">Reward</a>
-          </div>
+    {% for ans in q.answers %}
+      <div class="ml-4 mb-2 p-2 bg-gray-50 rounded flex justify-between items-center">
+        <span><strong>{{ ans.username }}:</strong> {{ ans.answer }}</span>
+        <div class="flex items-center gap-2">
+          <span class="text-green-600 font-bold">{{ ans.karma }} 💚</span>
+          <form method="POST" action="{{ url_for('give_karma', answer_id=ans.id) }}">
+            <button class="text-blue-600 text-sm">Reward</button>
+          </form>
         </div>
-      {% endfor %}
+      </div>
+    {% endfor %}
+
+    <form method="POST" action="{{ url_for('answer_question', question_id=q.id) }}">
+      <input type="text" name="answer" placeholder="Write your answer..." class="border rounded px-2 py-1 w-full mt-2" required>
+      <button type="submit" class="bg-green-600 text-white px-3 py-1 rounded mt-1">Submit Answer</button>
+    </form>
+  </div>
+{% endfor %}
+
 
       <!-- Answer form -->
       <form method="POST" action="{{ url_for('answer_question', question_id=q.id) }}">
