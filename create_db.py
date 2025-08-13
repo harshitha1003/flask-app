@@ -4,7 +4,9 @@ DB_PATH = "users.db"
 conn = sqlite3.connect(DB_PATH)
 cursor = conn.cursor()
 
-# Users table: password can be NULL initially
+# -------------------------------
+# Users table: password and roll_no can be NULL initially
+# -------------------------------
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -15,11 +17,17 @@ CREATE TABLE IF NOT EXISTS users (
 )
 """)
 
-# Insert predefined usernames with empty password
-predefined_usernames = ["unicorn", "phoenix", "dragon", "griffin", "pegasus"]
+# -------------------------------
+# Predefined usernames with empty password and roll_no
+# -------------------------------
+predefined_usernames = ["user1", "user2", "user3", "user4"]
+
 for uname in predefined_usernames:
-    cursor.execute("INSERT OR IGNORE INTO users (username, password) VALUES (?, NULL)", (uname,))
+    cursor.execute("""
+        INSERT OR IGNORE INTO users (username, password, roll_no, is_logged_in)
+        VALUES (?, NULL, NULL, 0)
+    """, (uname,))
 
 conn.commit()
 conn.close()
-print("Database initialized successfully!")
+print("Database initialized successfully with predefined usernames!")
