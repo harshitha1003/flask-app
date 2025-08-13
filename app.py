@@ -199,13 +199,7 @@ def logout():
     flash("You have been logged out.", "info")
     return redirect(url_for("login"))
 
-@app.route("/people")
-@login_required
-def people():
-    conn = get_db_connection()
-    users = conn.execute("SELECT username FROM users").fetchall()
-    conn.close()
-    return render_template("people.html", users=[u["username"] for u in users])
+
 
 @app.route("/questions", methods=["GET", "POST"])
 @login_required
