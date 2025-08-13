@@ -71,31 +71,41 @@
             </label>
           </div>
 
-          <!-- Username Dropdown -->
-          <div class="py-3">
-            <label class="flex flex-col w-full">
-              <p class="text-[#111418] text-base font-medium pb-2">Username</p>
-               <select name="username" required>
-               {% for uname in usernames %}
-               <option value="{{ uname }}">{{ uname }}</option>
-               {% endfor %}
-               </select>
+<!-- Username Dropdown -->
+<div class="py-3">
+  <label class="flex flex-col w-full">
+    <p class="text-[#111418] text-base font-medium pb-2">Username</p>
+    <select name="username" required
+      class="w-full rounded-lg border border-[#dbe0e6] h-14 px-4 text-[#111418] placeholder:text-[#60758a]">
+      {% for uname in usernames %}
+        <option value="{{ uname }}">{{ uname }}</option>
+      {% endfor %}
+    </select>
+  </label>
+</div>
 
-            </label>
-          </div>
+<!-- Password -->
+<div class="py-3">
+  <label class="flex flex-col w-full">
+    <p class="text-[#111418] text-base font-medium pb-2">Password</p>
+    <input type="password" name="password" placeholder="Set a password" required
+      class="form-input w-full rounded-lg border border-[#dbe0e6] h-14 px-4 placeholder:text-[#60758a]" />
+  </label>
+</div>
 
-          <!-- Submit -->
-          <div class="py-3">
-            <button type="submit"
-              class="flex items-center justify-center rounded-lg h-14 w-full bg-[#0d80f2] text-white font-bold hover:bg-[#0a6ed1]">
-              Sign Up
-            </button>
-          </div>
+<!-- Submit Button -->
+<div class="py-3">
+  <button type="submit"
+    class="flex items-center justify-center rounded-lg h-14 w-full bg-[#0d80f2] text-white font-bold hover:bg-[#0a6ed1]">
+    Sign Up
+  </button>
+</div>
 
-          <!-- Login link -->
-          <p class="text-[#60758a] text-sm text-center underline pt-2">
-            <a href="{{ url_for('login') }}">Already have an account? Sign in</a>
-          </p>
+<!-- Login link -->
+<p class="text-[#60758a] text-sm text-center underline pt-2">
+  <a href="{{ url_for('login') }}">Already have an account? Sign in</a>
+</p>
+
         </form>
       </div>
 
