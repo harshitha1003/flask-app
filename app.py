@@ -148,4 +148,10 @@ def people():
         return redirect(url_for("login"))
 
     conn = get_db_connection()
-    users = conn.execute("SELECT us
+    users = conn.execute(
+        "SELECT username FROM users WHERE is_logged_in = 1"
+    ).fetchall()
+    conn.close()
+
+    return render_template("people.html", users=users)
+
