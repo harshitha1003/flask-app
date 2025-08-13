@@ -21,20 +21,21 @@
 
     <!-- Page Content -->
     <div class="max-w-2xl mx-auto mt-8 p-6 bg-white rounded-lg shadow-lg">
-        <h2 class="text-2xl font-bold mb-4 text-gray-700">Currently Logged-In Users</h2>
+<h2 class="text-2xl font-bold mb-4 text-gray-700">Currently Logged-In Users</h2>
 
-        {% if users %}
-        <ul class="divide-y divide-gray-200">
-            {% for user in users %}
-            <li class="py-3 flex items-center">
-                <div class="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
-                <span class="text-gray-800">{{ user }}</span>
-            </li>
-            {% endfor %}
-        </ul>
-        {% else %}
-        <p class="text-gray-500 italic">No one is currently online.</p>
-        {% endif %}
+{% if users %}
+<ul class="divide-y divide-gray-200">
+    {% for user in users %}
+    <li class="py-3 flex items-center">
+        <div class="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+        <span class="text-gray-800">{{ user }}</span>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p class="text-gray-500 italic">No one is currently online.</p>
+{% endif %}
+
     </div>
 
 </body>
