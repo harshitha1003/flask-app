@@ -32,8 +32,9 @@ def init_db():
     conn.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            roll_no TEXT,
             username TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL,
+            password TEXT,
             is_logged_in INTEGER DEFAULT 0
         )
     """)
@@ -112,42 +113,36 @@ def signup():
         if user:
             if user["password"] == "":
                 conn.execute(
-                    "UPDATE users SET roll_no=?, password=?, is_logged_in=1 WHERE username=?",
+                    "UPDATE users SET roll_no=?, password=? WHERE username=?",
                     (roll_no, hashed_pw, username)
                 )
                 conn.commit()
-                session.clear()
-                session["username"] = username
-                flash("Signup successful! You are now logged in.", "success")
+                flash("Signup successful! Please log in.", "success")
                 conn.close()
-                return redirect(url_for("home"))
+                return redirect(url_for("login"))
             else:
                 flash("Username already exists.", "error")
                 conn.close()
                 return redirect(url_for("signup"))
         else:
             conn.execute(
-                "INSERT INTO users (roll_no, username, password, is_logged_in) VALUES (?, ?, ?, 1)",
+                "INSERT INTO users (roll_no, username, password) VALUES (?, ?, ?)",
                 (roll_no, username, hashed_pw)
             )
             conn.commit()
-            session.clear()
-            session["username"] = username
-            flash("Signup successful! You are now logged in.", "success")
+            flash("Signup successful! Please log in.", "success")
             conn.close()
-            return redirect(url_for("login"))  # redirect to home for immediate login
+            return redirect(url_for("login"))
 
     # GET request
     users = conn.execute("SELECT username FROM users WHERE password=''").fetchall()
     usernames = [row["username"] for row in users]
 
-    # Predefined usernames fallback
     if not usernames:
         usernames = ["user1", "user2", "user3", "user4"]
 
     conn.close()
     return render_template("signup.html", usernames=usernames)
-
 
 @app.route("/logout")
 def logout():
@@ -167,12 +162,12 @@ def people():
         return redirect(url_for("login"))
 
     conn = get_db_connection()
-    users = conn.execute("SELECT * FROM users").fetchall()  # fixed
+    users = conn.execute("SELECT * FROM users").fetchall()
     conn.close()
     return render_template("people.html", users=users)
 
 # -----------------------
-# Run app for Render
+# Run app
 # -----------------------
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
