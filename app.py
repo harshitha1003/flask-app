@@ -103,21 +103,26 @@ def index():
 @login_required
 def home():
     conn = get_db_connection()
+
+    # Fetch questions posted by current user
     my_questions = conn.execute(
         "SELECT id, question, created_at FROM questions WHERE username=? ORDER BY created_at DESC",
         (session["username"],)
     ).fetchall()
-    # Fetch answers for each question
-    question_answers = {}
+
+    # Attach answers for each question
+    questions_with_answers = []
     for q in my_questions:
         answers = conn.execute(
             "SELECT id, username, answer, karma FROM answers WHERE question_id=? ORDER BY created_at ASC",
             (q["id"],)
         ).fetchall()
-        question_answers[q["id"]] = answers
+        q_dict = dict(q)
+        q_dict["answers"] = answers
+        questions_with_answers.append(q_dict)
+
     conn.close()
-    return render_template("home.html", username=session["username"],
-                           questions=my_questions, question_answers=question_answers)
+    return render_template("home.html", username=session["username"], questions=questions_with_answers)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
