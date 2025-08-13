@@ -73,16 +73,17 @@ def init_db():
     """)
 
     # Predefined users with default password 12345
-    predefined_usernames = ["user1", "user2", "user3", "user4"]
-    default_password = hash_password("12345")
-    for uname in predefined_usernames:
-        try:
-            conn.execute(
-                "INSERT OR IGNORE INTO users (username, password) VALUES (?, ?)",
-                (uname, default_password)
-            )
-        except sqlite3.IntegrityError:
-            pass
+     predefined_usernames = ["user1", "user2", "user3", "user4"]
+     default_password = hash_password("12345")  # common password for all
+
+     for uname in predefined_usernames:
+     try:
+        conn.execute(
+            "INSERT INTO users (username, password) VALUES (?, ?)",
+            (uname, default_password)
+        )
+     except sqlite3.IntegrityError:
+        pass
 
     conn.commit()
     conn.close()
@@ -107,13 +108,15 @@ def login():
         user = conn.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
         conn.close()
 
-        if user and user["password"] == hashed_pw:
-            session.clear()
-            session["username"] = username
-            flash("Login successful!", "success")
-            return redirect(url_for("home"))
-        else:
-            flash("Invalid username or password.", "error")
+       user = conn.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
+
+       if user and user["password"] == hash_password(password):
+          session.clear()
+          session["username"] = username
+          flash("Login successful!", "success")
+          return redirect(url_for("home"))
+      else:
+         flash("Invalid username or password.", "error")
 
     return render_template("login.html")
 
@@ -159,6 +162,7 @@ def signup():
     # Fetch usernames with empty password to show in dropdown
     users = conn.execute("SELECT username FROM users WHERE password=''").fetchall()
     usernames = [row["username"] for row in users]
+
     conn.close()
     return render_template("signup.html", usernames=usernames)
 
