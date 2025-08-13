@@ -97,6 +97,7 @@ def signup():
     if request.method == "POST":
         username = request.form["username"].strip()
         password = request.form["password"].strip()
+
         if not username or not password:
             flash("All fields are required.", "error")
             conn.close()
@@ -104,9 +105,13 @@ def signup():
 
         hashed_pw = hash_password(password)
         user = conn.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
+
         if user:
             if user["password"] == "":
-                conn.execute("UPDATE users SET password=?, is_logged_in=1 WHERE username=?", (hashed_pw, username))
+                conn.execute(
+                    "UPDATE users SET password=?, is_logged_in=1 WHERE username=?",
+                    (hashed_pw, username)
+                )
                 conn.commit()
                 conn.close()
                 session.clear()
@@ -118,7 +123,10 @@ def signup():
                 flash("Username already exists.", "error")
                 return redirect(url_for("signup"))
         else:
-            conn.execute("INSERT INTO users (username, password, is_logged_in) VALUES (?, ?, 1)", (username, hashed_pw))
+            conn.execute(
+                "INSERT INTO users (username, password, is_logged_in) VALUES (?, ?, 1)",
+                (username, hashed_pw)
+            )
             conn.commit()
             conn.close()
             session.clear()
@@ -126,11 +134,12 @@ def signup():
             flash("Signup successful! You are now logged in.", "success")
             return redirect(url_for("home"))
 
-            # GET request: populate dropdown with users having empty password
-            users = conn.execute("SELECT username FROM users WHERE password=''").fetchall()
-            usernames = [row["username"] for row in users]
-            conn.close()
-            return render_template("signup.html", usernames=usernames)
+    # GET request: populate dropdown with users having empty password
+    users = conn.execute("SELECT username FROM users WHERE password=''").fetchall()
+    usernames = [row["username"] for row in users]
+    conn.close()
+    return render_template("signup.html", usernames=usernames)
+
 
 @app.route("/logout")
 def logout():
