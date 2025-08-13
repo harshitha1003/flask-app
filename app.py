@@ -133,7 +133,7 @@ def signup():
         user = conn.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
 
         if user:
-            if not user["password"]:  # If password empty, allow signup
+            if not user["password"]:  # Allow signup if password is empty
                 conn.execute(
                     "UPDATE users SET roll_no=?, password=? WHERE username=?",
                     (roll_no, hashed_pw, username)
@@ -155,6 +155,13 @@ def signup():
             flash("Signup successful! Please log in.", "success")
             conn.close()
             return redirect(url_for("login"))
+
+    # Fetch usernames with empty password to show in dropdown
+    users = conn.execute("SELECT username FROM users WHERE password=''").fetchall()
+    usernames = [row["username"] for row in users]
+    conn.close()
+    return render_template("signup.html", usernames=usernames)
+
 
     # Fetch usernames with empty password (if any)
     users = conn.execute("SELECT username FROM users WHERE password=''").fetchall()
