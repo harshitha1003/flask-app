@@ -75,12 +75,12 @@
           <div class="py-3">
             <label class="flex flex-col w-full">
               <p class="text-[#111418] text-base font-medium pb-2">Username</p>
-              <select name="username" required
-                class="w-full rounded-lg border border-[#dbe0e6] h-14 px-4 text-[#111418] placeholder:text-[#60758a]">
-                {% for uname in usernames %}
-                <option value="{{ uname }}">{{ uname }}</option>
-                {% endfor %}
-              </select>
+               <select name="username" required>
+               {% for uname in usernames %}
+               <option value="{{ uname }}">{{ uname }}</option>
+               {% endfor %}
+               </select>
+
             </label>
           </div>
 
