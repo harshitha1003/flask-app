@@ -43,21 +43,24 @@ def init_db():
     cursor.execute("SELECT COUNT(*) FROM predefined_usernames")
     if cursor.fetchone()[0] == 0:
         for uname in ["unicorn", "phoenix", "dragon", "griffin", "pegasus"]:
-            cursor.execute("INSERT OR IGNORE INTO predefined_usernames (username) VALUES (?)", (uname,))
+            cursor.execute(
+                "INSERT OR IGNORE INTO predefined_usernames (username) VALUES (?)",
+                (uname,)
+            )
 
     conn.commit()
     conn.close()
 
 # Initialize DB on startup
-# Initialize DB on startup (create if missing)
 if not os.path.exists(DB_PATH):
     init_db()
 else:
     try:
-        # Test if tables exist, else init
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='users'")
+        cursor.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' AND name='users'"
+        )
         if cursor.fetchone() is None:
             init_db()
         conn.close()
@@ -86,10 +89,12 @@ def signup():
     cursor = conn.cursor()
 
     if request.method == "POST":
-        roll_no = request.form["roll_no"]
-        username = request.form["username"]
-        password = request.form["password"]
+        roll_no = request.form["roll_no"].strip()
+        username = request.form["username"].strip()
+        password = request.form["password"].strip()
         hashed_pw = hash_password(password)
+
+        print(f"[SIGNUP] roll_no={roll_no}, username={username}, hash={hashed_pw}")
 
         try:
             cursor.execute(
@@ -99,10 +104,10 @@ def signup():
             conn.commit()
             flash("Signup successful! Please login.", "success")
             return redirect(url_for("login"))
-        except sqlite3.IntegrityError:
+        except sqlite3.IntegrityError as e:
+            print(f"[SIGNUP ERROR] {e}")
             flash("Username already taken!", "error")
 
-    # Fetch available usernames for dropdown
     cursor.execute("""
         SELECT username FROM predefined_usernames
         WHERE username NOT IN (SELECT username FROM users)
@@ -115,22 +120,38 @@ def signup():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        username = request.form["username"]
-        password = request.form["password"]
+        username = request.form["username"].strip()
+        password = request.form["password"].strip()
         hashed_pw = hash_password(password)
+
+        print(f"[LOGIN] entered_username={username}, entered_hash={hashed_pw}")
 
         conn = get_db_connection()
         user = conn.execute(
             "SELECT * FROM users WHERE username=? AND password=?",
             (username, hashed_pw)
         ).fetchone()
+
+        # Debug check: show stored hash if username exists
+        if not user:
+            stored_user = conn.execute(
+                "SELECT * FROM users WHERE username=?",
+                (username,)
+            ).fetchone()
+            if stored_user:
+                print(f"[DEBUG] Stored hash for {username}: {stored_user['password']}")
+            else:
+                print(f"[DEBUG] No user found with username {username}")
+
         conn.close()
 
         if user:
-            session["username"] = username  # store username in session
+            print(f"[LOGIN SUCCESS] {dict(user)}")
+            session["username"] = username
             flash(f"Welcome, {username}!", "success")
             return redirect(url_for("home"))
         else:
+            print("[LOGIN FAILED] Invalid credentials")
             flash("Invalid username or password.", "error")
 
     return render_template("login.html")
