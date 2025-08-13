@@ -1,36 +1,25 @@
 import sqlite3
 
-# Connect to (or create) database
-conn = sqlite3.connect("users.db")
+DB_PATH = "users.db"
+conn = sqlite3.connect(DB_PATH)
 cursor = conn.cursor()
 
-# Create table for predefined usernames
-cursor.execute("""
-CREATE TABLE IF NOT EXISTS predefined_usernames (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT UNIQUE
-)
-""")
-
-# Insert predefined usernames
-predefined_usernames = ["unicorn", "phoenix", "dragon", "griffin", "pegasus"]
-
-# Use INSERT OR IGNORE to avoid duplicates if script runs again
-for uname in predefined_usernames:
-    cursor.execute("INSERT OR IGNORE INTO predefined_usernames (username) VALUES (?)", (uname,))
-
-# Create users table
+# Users table: password can be NULL initially
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    roll_no TEXT NOT NULL,
+    roll_no TEXT,
     username TEXT NOT NULL UNIQUE,
-    password TEXT NOT NULL
+    password TEXT,
+    is_logged_in INTEGER DEFAULT 0
 )
 """)
 
-# Commit changes and close
+# Insert predefined usernames with empty password
+predefined_usernames = ["unicorn", "phoenix", "dragon", "griffin", "pegasus"]
+for uname in predefined_usernames:
+    cursor.execute("INSERT OR IGNORE INTO users (username, password) VALUES (?, NULL)", (uname,))
+
 conn.commit()
 conn.close()
-
-print("Database created and tables initialized successfully!")
+print("Database initialized successfully!")
