@@ -5,7 +5,7 @@ conn = sqlite3.connect(DB_PATH)
 cursor = conn.cursor()
 
 # -------------------------------
-# Users table: password and roll_no can be NULL initially
+# Users table
 # -------------------------------
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS users (
@@ -14,6 +14,18 @@ CREATE TABLE IF NOT EXISTS users (
     username TEXT NOT NULL UNIQUE,
     password TEXT,
     is_logged_in INTEGER DEFAULT 0
+)
+""")
+
+# -------------------------------
+# Questions table
+# -------------------------------
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS questions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL,
+    question TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )
 """)
 
@@ -30,4 +42,4 @@ for uname in predefined_usernames:
 
 conn.commit()
 conn.close()
-print("Database initialized successfully with predefined usernames!")
+print("Database initialized successfully with predefined usernames and questions table!")
