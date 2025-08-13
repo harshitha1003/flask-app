@@ -27,38 +27,36 @@ def index():
 def home():
     return render_template("home.html")
 
-# Signup page
-@app.route("/signup", methods=["GET", "POST"])
+
+@app.route('/signup', methods=['GET', 'POST'])
 def signup():
-    conn = get_db_connection()
-    if request.method == "POST":
-        roll_no = request.form["roll_no"]
-        username = request.form["username"]
-        password = request.form["password"]
-        hashed_pw = hash_password(password)
+    conn = sqlite3.connect("users.db")
+    cursor = conn.cursor()
 
-        # Update existing user with empty password
-        cursor = conn.execute(
-            "SELECT * FROM users WHERE username=? AND password=''",
-            (username,)
-        )
-        user = cursor.fetchone()
-        if user:
-            conn.execute(
-                "UPDATE users SET roll_no=?, password=? WHERE username=?",
-                (roll_no, hashed_pw, username)
-            )
+    if request.method == 'POST':
+        roll_no = request.form['roll_no']
+        username = request.form['username']
+        password = request.form['password']
+
+        try:
+            cursor.execute("INSERT INTO users (roll_no, username, password) VALUES (?, ?, ?)",
+                           (roll_no, username, password))
             conn.commit()
-            conn.close()
             flash("Signup successful! Please login.", "success")
-            return redirect(url_for("login"))
-        else:
-            flash("Username is not available or already taken.", "error")
+            return redirect(url_for('login'))
+        except sqlite3.IntegrityError:
+            flash("Username already taken!", "error")
 
-    # GET: show available usernames
-    users = conn.execute("SELECT username FROM users WHERE password=''").fetchall()
+    # GET request: show available usernames
+    cursor.execute("""
+        SELECT username FROM predefined_usernames
+        WHERE username NOT IN (SELECT username FROM users)
+    """)
+    available_users = cursor.fetchall()
     conn.close()
-    return render_template("signup.html", available_users=users)
+
+    return render_template('signup.html', available_users=available_users)
+
 
 # Login page
 @app.route("/login", methods=["GET", "POST"])
