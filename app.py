@@ -38,7 +38,7 @@ def login_required(f):
     return decorated
 
 # -----------------------
-# Initialize DB and predefined usernames
+# Initialize DB
 # -----------------------
 def init_db():
     conn = get_db_connection()
@@ -61,9 +61,22 @@ def init_db():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+    # Answers table
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS answers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            question_id INTEGER NOT NULL,
+            username TEXT NOT NULL,
+            answer TEXT NOT NULL,
+            karma INTEGER DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(question_id) REFERENCES questions(id),
+            FOREIGN KEY(username) REFERENCES users(username)
+        )
+    """)
 
     predefined_usernames = ["user1", "user2", "user3", "user4"]
-    default_password = hash_password("12345")  # everyone gets this password
+    default_password = hash_password("12345")
 
     for uname in predefined_usernames:
         try:
@@ -89,7 +102,22 @@ def index():
 @app.route("/home")
 @login_required
 def home():
-    return render_template("home.html", username=session["username"])
+    conn = get_db_connection()
+    my_questions = conn.execute(
+        "SELECT id, question, created_at FROM questions WHERE username=? ORDER BY created_at DESC",
+        (session["username"],)
+    ).fetchall()
+    # Fetch answers for each question
+    question_answers = {}
+    for q in my_questions:
+        answers = conn.execute(
+            "SELECT id, username, answer, karma FROM answers WHERE question_id=? ORDER BY created_at ASC",
+            (q["id"],)
+        ).fetchall()
+        question_answers[q["id"]] = answers
+    conn.close()
+    return render_template("home.html", username=session["username"],
+                           questions=my_questions, question_answers=question_answers)
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -118,7 +146,6 @@ def login():
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     conn = get_db_connection()
-
     if request.method == "POST":
         roll_no = request.form["roll_no"].strip()
         username = request.form["username"].strip()
@@ -134,7 +161,6 @@ def signup():
 
         if user:
             if user["password"] == "":
-                # Set password for selected predefined username
                 conn.execute(
                     "UPDATE users SET roll_no=?, password=? WHERE username=?",
                     (roll_no, hashed_pw, username)
@@ -148,7 +174,6 @@ def signup():
                 conn.close()
                 return redirect(url_for("signup"))
         else:
-            # Allow creating completely new username
             conn.execute(
                 "INSERT INTO users (roll_no, username, password) VALUES (?, ?, ?)",
                 (roll_no, username, hashed_pw)
@@ -158,7 +183,6 @@ def signup():
             conn.close()
             return redirect(url_for("login"))
 
-    # GET request: fetch usernames with empty passwords
     users = conn.execute("SELECT username FROM users WHERE password=''").fetchall()
     usernames = [row["username"] for row in users]
     conn.close()
@@ -187,7 +211,6 @@ def people():
 @login_required
 def questions():
     conn = get_db_connection()
-
     if request.method == "POST":
         question_text = request.form.get("question", "").strip()
         if question_text:
@@ -199,11 +222,37 @@ def questions():
             flash("Question posted successfully!", "success")
 
     all_questions = conn.execute(
-        "SELECT username, question, created_at FROM questions ORDER BY created_at DESC"
+        "SELECT q.id, q.username, q.question, q.created_at, "
+        "(SELECT COUNT(*) FROM answers a WHERE a.question_id=q.id) AS answers_count "
+        "FROM questions q ORDER BY q.created_at DESC"
     ).fetchall()
     conn.close()
-    
     return render_template("questions.html", questions=all_questions)
+
+@app.route("/answer/<int:question_id>", methods=["POST"])
+@login_required
+def answer_question(question_id):
+    answer_text = request.form.get("answer", "").strip()
+    if answer_text:
+        conn = get_db_connection()
+        conn.execute(
+            "INSERT INTO answers (question_id, username, answer) VALUES (?, ?, ?)",
+            (question_id, session["username"], answer_text)
+        )
+        conn.commit()
+        conn.close()
+        flash("Answer posted successfully!", "success")
+    return redirect(url_for("questions"))
+
+@app.route("/karma/<int:answer_id>", methods=["POST"])
+@login_required
+def give_karma(answer_id):
+    conn = get_db_connection()
+    conn.execute("UPDATE answers SET karma = karma + 1 WHERE id=?", (answer_id,))
+    conn.commit()
+    conn.close()
+    flash("Karma point added!", "success")
+    return redirect(url_for("questions"))
 
 # -----------------------
 # Run app
