@@ -25,7 +25,24 @@ CREATE TABLE IF NOT EXISTS questions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL,
     question TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(username) REFERENCES users(username)
+)
+""")
+
+# -------------------------------
+# Answers table
+# -------------------------------
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS answers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    question_id INTEGER NOT NULL,
+    username TEXT NOT NULL,
+    answer TEXT NOT NULL,
+    karma INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(question_id) REFERENCES questions(id),
+    FOREIGN KEY(username) REFERENCES users(username)
 )
 """)
 
@@ -42,4 +59,4 @@ for uname in predefined_usernames:
 
 conn.commit()
 conn.close()
-print("Database initialized successfully with predefined usernames and questions table!")
+print("Database initialized successfully with users, questions, and answers tables!")
