@@ -135,7 +135,7 @@ def signup():
             session["username"] = username
             flash("Signup successful! You are now logged in.", "success")
             conn.close()
-            return redirect(url_for("home"))
+            return redirect(url_for("login"))
 
     # GET request
     users = conn.execute("SELECT username FROM users WHERE password=''").fetchall()
