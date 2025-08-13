@@ -11,7 +11,7 @@ app.secret_key = os.environ.get("SECRET_KEY", "super_secret_key_123")
 app.config["SESSION_COOKIE_SECURE"] = False
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
-DB_PATH = "users.db"
+DB_PATH = "/tmp/users.db"
 
 # -----------------------
 # Helpers
