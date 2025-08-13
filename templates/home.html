@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>Questions</title>
+  <title>Home</title>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 </head>
 
@@ -23,48 +23,40 @@
     </div>
   </header>
 
-<main class="p-6 max-w-3xl mx-auto">
-  <h2 class="text-2xl font-bold mb-4">My Questions</h2>
+  <main class="p-6 max-w-3xl mx-auto">
+    <h2 class="text-2xl font-bold mb-4">My Questions</h2>
 
-<!-- Replace my_questions with questions -->
-{% for q in questions %}
-  <div class="bg-white p-4 mb-4 rounded shadow">
-    <p class="font-medium">{{ q.question }}</p>
-    <p class="text-gray-500 text-sm mb-2">{{ q.answers_count }} Answers</p>
+    {% if questions %}
+      {% for q in questions %}
+        <div class="bg-white p-4 mb-4 rounded shadow">
+          <p class="font-medium">{{ q.question }}</p>
+          <p class="text-gray-500 text-sm mb-2">{{ q.answers|length }} Answers</p>
 
-    {% for ans in q.answers %}
-      <div class="ml-4 mb-2 p-2 bg-gray-50 rounded flex justify-between items-center">
-        <span><strong>{{ ans.username }}:</strong> {{ ans.answer }}</span>
-        <div class="flex items-center gap-2">
-          <span class="text-green-600 font-bold">{{ ans.karma }} 💚</span>
-          <form method="POST" action="{{ url_for('give_karma', answer_id=ans.id) }}">
-            <button class="text-blue-600 text-sm">Reward</button>
+          {% for ans in q.answers %}
+            <div class="ml-4 mb-2 p-2 bg-gray-50 rounded flex justify-between items-center">
+              <span><strong>{{ ans.username }}:</strong> {{ ans.answer }}</span>
+              <div class="flex items-center gap-2">
+                <span class="text-green-600 font-bold">{{ ans.karma }} 💚</span>
+                {% if ans.username != username %}
+                  <form method="POST" action="{{ url_for('give_karma', answer_id=ans.id) }}">
+                    <button class="text-blue-600 text-sm">Reward</button>
+                  </form>
+                {% endif %}
+              </div>
+            </div>
+          {% endfor %}
+
+          <!-- Answer form -->
+          <form method="POST" action="{{ url_for('answer_question', question_id=q.id) }}">
+            <input type="text" name="answer" placeholder="Write your answer..." class="border rounded px-2 py-1 w-full mt-2" required>
+            <button type="submit" class="bg-green-600 text-white px-3 py-1 rounded mt-1">Submit Answer</button>
           </form>
         </div>
-      </div>
-    {% endfor %}
+      {% endfor %}
+    {% else %}
+      <p class="text-gray-600">You haven’t posted any questions yet.</p>
+    {% endif %}
 
-    <form method="POST" action="{{ url_for('answer_question', question_id=q.id) }}">
-      <input type="text" name="answer" placeholder="Write your answer..." class="border rounded px-2 py-1 w-full mt-2" required>
-      <button type="submit" class="bg-green-600 text-white px-3 py-1 rounded mt-1">Submit Answer</button>
-    </form>
-  </div>
-{% endfor %}
-
-
-      <!-- Answer form -->
-      <form method="POST" action="{{ url_for('answer_question', question_id=q.id) }}">
-        <input type="text" name="answer" placeholder="Write your answer..." class="border rounded px-2 py-1 w-full mt-2" required>
-        <button type="submit" class="bg-green-600 text-white px-3 py-1 rounded mt-1">Submit Answer</button>
-      </form>
-    </div>
-  {% endfor %}
-
-  {% if not my_questions %}
-    <p class="text-gray-600">You haven’t posted any questions yet.</p>
-  {% endif %}
-</main>
-
+  </main>
 </body>
-
 </html>
