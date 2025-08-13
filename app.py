@@ -125,9 +125,10 @@ def signup():
             return redirect(url_for("home"))
 
     conn = get_db_connection()
-users = conn.execute(
-    "SELECT username FROM users WHERE is_logged_in = 1"
-).fetchall()
+users = conn.execute("SELECT username FROM users WHERE password=''").fetchall()
+usernames = [row["username"] for row in users]
+return render_template("signup.html", usernames=usernames)
+
     conn.close()
     usernames = [row["username"] for row in users]
     return render_template("signup.html", usernames=usernames)
