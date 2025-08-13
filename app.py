@@ -1,95 +1,77 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, flash
 import sqlite3
 
 app = Flask(__name__)
+app.secret_key = "your_secret_key"  # needed for flashing messages
 
-# Initialize database
-def init_db():
-    conn = sqlite3.connect("users.db")
-    c = conn.cursor()
-    c.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            roll_no TEXT NOT NULL,
-            username TEXT NOT NULL UNIQUE,
-            password TEXT NOT NULL
-        )
-    """)
-    conn.commit()
-    conn.close()
+DB_PATH = "users.db"
 
-init_db()
-
-@app.route("/")
-def index():
-    return redirect(url_for("login"))
-
-
-@app.route("/signup", methods=["GET", "POST"])
-def signup():
-    conn = sqlite3.connect("users.db")
+# Helper: Get predefined usernames
+def get_usernames():
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-
-    # Fetch predefined usernames
     cursor.execute("SELECT username FROM predefined_usernames")
     usernames = [row[0] for row in cursor.fetchall()]
+    conn.close()
+    return usernames
 
+# Home page
+@app.route("/home")
+def home():
+    return render_template("home.html")
+
+# Signup
+@app.route("/signup", methods=["GET", "POST"])
+def signup():
     if request.method == "POST":
         roll_no = request.form["roll_no"]
         username = request.form["username"]
         password = request.form["password"]
 
-        cursor.execute(
-            "INSERT INTO users (roll_no, username, password) VALUES (?, ?, ?)",
-            (roll_no, username, password),
-        )
-        conn.commit()
-        conn.close()
-        return redirect(url_for("login"))
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                "INSERT INTO users (roll_no, username, password) VALUES (?, ?, ?)",
+                (roll_no, username, password),
+            )
+            conn.commit()
+            flash("Signup successful! Please login.", "success")
+            return redirect(url_for("login"))
+        except sqlite3.IntegrityError:
+            flash("Username already taken!", "error")
+        finally:
+            conn.close()
 
-    conn.close()
+    usernames = get_usernames()
     return render_template("signup.html", usernames=usernames)
 
-
-
-    # Example usernames for selection
-    usernames = ["user1", "user2", "user3"]
-    return render_template("signup.html", usernames=usernames)
-
+# Login
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
 
-        conn = sqlite3.connect("users.db")
-        c = conn.cursor()
-        c.execute("SELECT * FROM users WHERE username=?", (username,))
-        user = c.fetchone()
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT * FROM users WHERE username=? AND password=?",
+            (username, password),
+        )
+        user = cursor.fetchone()
         conn.close()
 
-        if user and check_password_hash(user[3], password):
-            session["username"] = username
+        if user:
             return redirect(url_for("home"))
         else:
-            return "❌ Invalid username or password!"
+            flash("Invalid username or password", "error")
 
     return render_template("login.html")
 
-@app.route("/home")
-def home():
-    if "username" in session:
-        return render_template("home.html", username=session["username"])
-    return redirect(url_for("login"))
-
-@app.route("/logout")
-def logout():
-    session.pop("username", None)
-    return redirect(url_for("login"))
-
 if __name__ == "__main__":
-    init_db()
-    app.run(debug=False, host="0.0.0.0", port=5000)
+    app.run(debug=True)
+
 
 import sqlite3
 from flask import Flask, render_template, request, redirect, url_for
