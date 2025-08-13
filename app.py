@@ -256,12 +256,13 @@ def questions():
             (q["id"],)
         ).fetchall()
         q_dict = dict(q)
-        q_dict["answers"] = answers
+        q_dict["answers"] = [dict(a) for a in answers]  # convert answers to dict
         questions_with_answers.append(q_dict)
 
     conn.close()
     
     return render_template("questions.html", questions=questions_with_answers, username=session["username"])
+
 
 
 
