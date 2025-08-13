@@ -211,6 +211,7 @@ def people():
 @login_required
 def questions():
     conn = get_db_connection()
+    
     if request.method == "POST":
         question_text = request.form.get("question", "").strip()
         if question_text:
@@ -221,21 +222,26 @@ def questions():
             conn.commit()
             flash("Question posted successfully!", "success")
 
-           all_questions = conn.execute(
-           "SELECT q.id, q.username, q.question, q.created_at FROM questions q ORDER BY q.created_at DESC"
-           ).fetchall()
-
-# Attach answers to each question
-questions_with_answers = []
-for q in all_questions:
-    answers = conn.execute(
-        "SELECT * FROM answers WHERE question_id=? ORDER BY created_at ASC", (q["id"],)
+    # Fetch all questions
+    all_questions = conn.execute(
+        "SELECT q.id, q.username, q.question, q.created_at FROM questions q ORDER BY q.created_at DESC"
     ).fetchall()
-    q_dict = dict(q)
-    q_dict["answers"] = answers
-    questions_with_answers.append(q_dict)
 
-return render_template("questions.html", questions=questions_with_answers, username=session["username"])
+    # Attach answers to each question
+    questions_with_answers = []
+    for q in all_questions:
+        answers = conn.execute(
+            "SELECT id, username, answer, karma FROM answers WHERE question_id=? ORDER BY created_at ASC", 
+            (q["id"],)
+        ).fetchall()
+        q_dict = dict(q)
+        q_dict["answers"] = answers
+        questions_with_answers.append(q_dict)
+
+    conn.close()
+    
+    return render_template("questions.html", questions=questions_with_answers, username=session["username"])
+
 
 
 @app.route("/answer/<int:question_id>", methods=["POST"])
