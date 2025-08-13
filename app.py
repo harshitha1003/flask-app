@@ -92,15 +92,17 @@ def login():
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
+    conn = get_db_connection()
+
     if request.method == "POST":
         username = request.form["username"].strip()
         password = request.form["password"].strip()
         if not username or not password:
             flash("All fields are required.", "error")
+            conn.close()
             return redirect(url_for("signup"))
 
         hashed_pw = hash_password(password)
-        conn = get_db_connection()
         user = conn.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
         if user:
             if user["password"] == "":
@@ -124,15 +126,11 @@ def signup():
             flash("Signup successful! You are now logged in.", "success")
             return redirect(url_for("home"))
 
-    conn = get_db_connection()
-users = conn.execute("SELECT username FROM users WHERE password=''").fetchall()
-usernames = [row["username"] for row in users]
-return render_template("signup.html", usernames=usernames)
-
-conn.close()
-usernames = [row["username"] for row in users]
-return render_template("signup.html", usernames=usernames)
-
+    # GET request: populate dropdown with users having empty password
+    users = conn.execute("SELECT username FROM users WHERE password=''").fetchall()
+    usernames = [row["username"] for row in users]
+    conn.close()
+    return render_template("signup.html", usernames=usernames)
 
 @app.route("/logout")
 def logout():
@@ -152,10 +150,13 @@ def people():
         return redirect(url_for("login"))
 
     conn = get_db_connection()
-    users = conn.execute(
-        "SELECT username FROM users WHERE is_logged_in = 1"
-    ).fetchall()
+    users = conn.execute("SELECT username FROM users WHERE is_logged_in=1").fetchall()
     conn.close()
-
     return render_template("people.html", users=users)
 
+# -------------------------------
+# Run app
+# -------------------------------
+if __name__ == "__main__":
+    init_db()
+    app.run(debug=True)
