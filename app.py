@@ -49,7 +49,21 @@ def init_db():
     conn.close()
 
 # Initialize DB on startup
-init_db()
+# Initialize DB on startup (create if missing)
+if not os.path.exists(DB_PATH):
+    init_db()
+else:
+    try:
+        # Test if tables exist, else init
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='users'")
+        if cursor.fetchone() is None:
+            init_db()
+        conn.close()
+    except:
+        init_db()
+
 
 # -------------------------------
 # Routes
