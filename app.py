@@ -129,9 +129,10 @@ users = conn.execute("SELECT username FROM users WHERE password=''").fetchall()
 usernames = [row["username"] for row in users]
 return render_template("signup.html", usernames=usernames)
 
-    conn.close()
-    usernames = [row["username"] for row in users]
-    return render_template("signup.html", usernames=usernames)
+conn.close()
+usernames = [row["username"] for row in users]
+return render_template("signup.html", usernames=usernames)
+
 
 @app.route("/logout")
 def logout():
