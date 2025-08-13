@@ -38,12 +38,19 @@ def init_db():
             is_logged_in INTEGER DEFAULT 0
         )
     """)
+
     predefined_usernames = ["user1", "user2", "user3", "user4"]
+    default_password = hash_password("12345")  # everyone gets this password
+
     for uname in predefined_usernames:
         try:
-            conn.execute("INSERT INTO users (username, password) VALUES (?, ?)", (uname, ""))
+            conn.execute(
+                "INSERT INTO users (username, password) VALUES (?, ?)",
+                (uname, default_password)
+            )
         except sqlite3.IntegrityError:
             pass
+
     conn.commit()
     conn.close()
 
@@ -75,22 +82,18 @@ def login():
         conn = get_db_connection()
         user = conn.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
 
-        if user:
-            if user["password"] == "":
-                flash("Password not set! Please sign up first.", "error")
-            elif user["password"] == hashed_pw:
-                conn.execute("UPDATE users SET is_logged_in=1 WHERE username=?", (username,))
-                conn.commit()
-                conn.close()
-                session.clear()
-                session["username"] = username
-                flash("Login successful!", "success")
-                return redirect(url_for("home"))
-            else:
-                flash("Invalid username or password.", "error")
+        if user and user["password"] == hashed_pw:
+            conn.execute("UPDATE users SET is_logged_in=1 WHERE username=?", (username,))
+            conn.commit()
+            conn.close()
+            session.clear()
+            session["username"] = username
+            flash("Login successful!", "success")
+            return redirect(url_for("home"))
         else:
             flash("Invalid username or password.", "error")
-        conn.close()
+            conn.close()
+
     return render_template("login.html")
 
 @app.route("/signup", methods=["GET", "POST"])
@@ -111,19 +114,9 @@ def signup():
         user = conn.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
 
         if user:
-            if user["password"] == "":
-                conn.execute(
-                    "UPDATE users SET roll_no=?, password=? WHERE username=?",
-                    (roll_no, hashed_pw, username)
-                )
-                conn.commit()
-                flash("Signup successful! Please log in.", "success")
-                conn.close()
-                return redirect(url_for("login"))
-            else:
-                flash("Username already exists.", "error")
-                conn.close()
-                return redirect(url_for("signup"))
+            flash("Username already exists.", "error")
+            conn.close()
+            return redirect(url_for("signup"))
         else:
             conn.execute(
                 "INSERT INTO users (roll_no, username, password) VALUES (?, ?, ?)",
@@ -135,14 +128,8 @@ def signup():
             return redirect(url_for("login"))
 
     # GET request
-    users = conn.execute("SELECT username FROM users WHERE password=''").fetchall()
-    usernames = [row["username"] for row in users]
-
-    if not usernames:
-        usernames = ["user1", "user2", "user3", "user4"]
-
     conn.close()
-    return render_template("signup.html", usernames=usernames)
+    return render_template("signup.html")
 
 @app.route("/logout")
 def logout():
@@ -162,7 +149,6 @@ def people():
         return redirect(url_for("login"))
 
     conn = get_db_connection()
-    # Only select users who are logged in
     users = conn.execute("SELECT username FROM users WHERE is_logged_in=1").fetchall()
     conn.close()
     
