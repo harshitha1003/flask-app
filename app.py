@@ -4,9 +4,6 @@ import hashlib
 import os
 from functools import wraps
 
-# -----------------------
-# Flask app setup
-# -----------------------
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "super_secret_key_123")
 app.config["SESSION_COOKIE_SECURE"] = False
@@ -25,9 +22,6 @@ def get_db_connection():
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
-# -----------------------
-# Login required decorator
-# -----------------------
 def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -43,18 +37,15 @@ def login_required(f):
 def init_db():
     conn = get_db_connection()
 
-    # Users table
     conn.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             roll_no TEXT,
             username TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL,
-            is_logged_in INTEGER DEFAULT 0
+            password TEXT NOT NULL
         )
     """)
 
-    # Questions table
     conn.execute("""
         CREATE TABLE IF NOT EXISTS questions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -64,7 +55,6 @@ def init_db():
         )
     """)
 
-    # Answers table
     conn.execute("""
         CREATE TABLE IF NOT EXISTS answers (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -78,9 +68,9 @@ def init_db():
         )
     """)
 
-    # Predefined users with common password
+    # Predefined users
     predefined_usernames = ["user1", "user2", "user3", "user4"]
-    default_password = hash_password("12345")  # common password
+    default_password = hash_password("12345")
 
     for uname in predefined_usernames:
         try:
@@ -93,7 +83,6 @@ def init_db():
 
     conn.commit()
     conn.close()
-
 
 init_db()
 
@@ -115,21 +104,20 @@ def login():
         user = conn.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
         conn.close()
 
-       user = conn.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
-
-       if user and user["password"] == hash_password(password):
-          session.clear()
-          session["username"] = username
-          flash("Login successful!", "success")
-          return redirect(url_for("home"))
-      else:
-         flash("Invalid username or password.", "error")
+        if user and user["password"] == hashed_pw:
+            session.clear()
+            session["username"] = username
+            flash("Login successful!", "success")
+            return redirect(url_for("home"))
+        else:
+            flash("Invalid username or password.", "error")
 
     return render_template("login.html")
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     conn = get_db_connection()
+
     if request.method == "POST":
         roll_no = request.form["roll_no"].strip()
         username = request.form["username"].strip()
@@ -143,15 +131,11 @@ def signup():
         user = conn.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
 
         if user:
-            if not user["password"]:  # Allow signup if password is empty
+            if not user["password"]:  # Empty password allowed
                 conn.execute(
                     "UPDATE users SET roll_no=?, password=? WHERE username=?",
                     (roll_no, hashed_pw, username)
                 )
-                conn.commit()
-                flash("Signup successful! Please log in.", "success")
-                conn.close()
-                return redirect(url_for("login"))
             else:
                 flash("Username already taken.", "error")
                 conn.close()
@@ -161,23 +145,17 @@ def signup():
                 "INSERT INTO users (roll_no, username, password) VALUES (?, ?, ?)",
                 (roll_no, username, hashed_pw)
             )
-            conn.commit()
-            flash("Signup successful! Please log in.", "success")
-            conn.close()
-            return redirect(url_for("login"))
 
-    # Fetch usernames with empty password to show in dropdown
-    users = conn.execute("SELECT username FROM users WHERE password=''").fetchall()
-    usernames = [row["username"] for row in users]
+        conn.commit()
+        conn.close()
+        flash("Signup successful! Please log in.", "success")
+        return redirect(url_for("login"))
 
-    conn.close()
-    return render_template("signup.html", usernames=usernames)
-
-
-    # Fetch usernames with empty password (if any)
+    # Fetch usernames with empty password for dropdown
     users = conn.execute("SELECT username FROM users WHERE password=''").fetchall()
     usernames = [row["username"] for row in users]
     conn.close()
+
     return render_template("signup.html", usernames=usernames)
 
 @app.route("/home", methods=["GET", "POST"])
@@ -186,7 +164,6 @@ def home():
     try:
         conn = get_db_connection()
 
-        # Post a question
         if request.method == "POST":
             question_text = request.form.get("question", "").strip()
             if question_text:
@@ -197,7 +174,6 @@ def home():
                 conn.commit()
                 flash("Question posted successfully!", "success")
 
-        # Fetch user's questions
         my_questions = conn.execute(
             "SELECT id, question, created_at FROM questions WHERE username=? ORDER BY created_at DESC",
             (session["username"],)
@@ -215,11 +191,10 @@ def home():
 
         conn.close()
         return render_template("home.html", username=session["username"], questions=questions_with_answers)
-    
+
     except Exception as e:
         flash(f"Error loading home: {e}", "error")
         return redirect(url_for("login"))
-
 
 @app.route("/logout")
 @login_required
