@@ -172,34 +172,43 @@ def signup():
 @app.route("/home", methods=["GET", "POST"])
 @login_required
 def home():
-    conn = get_db_connection()
-    if request.method == "POST":
-        question_text = request.form.get("question", "").strip()
-        if question_text:
-            conn.execute(
-                "INSERT INTO questions (username, question) VALUES (?, ?)",
-                (session["username"], question_text)
-            )
-            conn.commit()
-            flash("Question posted successfully!", "success")
+    try:
+        conn = get_db_connection()
 
-    my_questions = conn.execute(
-        "SELECT id, question, created_at FROM questions WHERE username=? ORDER BY created_at DESC",
-        (session["username"],)
-    ).fetchall()
+        # Post a question
+        if request.method == "POST":
+            question_text = request.form.get("question", "").strip()
+            if question_text:
+                conn.execute(
+                    "INSERT INTO questions (username, question) VALUES (?, ?)",
+                    (session["username"], question_text)
+                )
+                conn.commit()
+                flash("Question posted successfully!", "success")
 
-    questions_with_answers = []
-    for q in my_questions:
-        answers = conn.execute(
-            "SELECT id, username, answer, karma FROM answers WHERE question_id=? ORDER BY created_at ASC",
-            (q["id"],)
+        # Fetch user's questions
+        my_questions = conn.execute(
+            "SELECT id, question, created_at FROM questions WHERE username=? ORDER BY created_at DESC",
+            (session["username"],)
         ).fetchall()
-        q_dict = dict(q)
-        q_dict["answers"] = [dict(a) for a in answers]
-        questions_with_answers.append(q_dict)
 
-    conn.close()
-    return render_template("home.html", username=session["username"], questions=questions_with_answers)
+        questions_with_answers = []
+        for q in my_questions:
+            answers = conn.execute(
+                "SELECT id, username, answer, karma FROM answers WHERE question_id=? ORDER BY created_at ASC",
+                (q["id"],)
+            ).fetchall()
+            q_dict = dict(q)
+            q_dict["answers"] = [dict(a) for a in answers] if answers else []
+            questions_with_answers.append(q_dict)
+
+        conn.close()
+        return render_template("home.html", username=session["username"], questions=questions_with_answers)
+    
+    except Exception as e:
+        flash(f"Error loading home: {e}", "error")
+        return redirect(url_for("login"))
+
 
 @app.route("/logout")
 @login_required
