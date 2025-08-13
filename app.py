@@ -172,6 +172,31 @@ def people():
     conn.close()
     
     return render_template("people.html", users=users)
+@app.route("/questions", methods=["GET", "POST"])
+def questions():
+    if "username" not in session:
+        flash("Please log in first.", "error")
+        return redirect(url_for("login"))
+
+    conn = get_db_connection()
+
+    if request.method == "POST":
+        question_text = request.form.get("question", "").strip()
+        if question_text:
+            conn.execute(
+                "INSERT INTO questions (username, question) VALUES (?, ?)",
+                (session["username"], question_text)
+            )
+            conn.commit()
+            flash("Question posted successfully!", "success")
+
+    all_questions = conn.execute(
+        "SELECT username, question, created_at FROM questions ORDER BY created_at DESC"
+    ).fetchall()
+    conn.close()
+    
+    return render_template("questions.html", questions=all_questions)
+
 
 # -----------------------
 # Run app
