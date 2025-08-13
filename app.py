@@ -126,11 +126,11 @@ def signup():
             flash("Signup successful! You are now logged in.", "success")
             return redirect(url_for("home"))
 
-    # GET request: populate dropdown with users having empty password
-    users = conn.execute("SELECT username FROM users WHERE password=''").fetchall()
-    usernames = [row["username"] for row in users]
-    conn.close()
-    return render_template("signup.html", usernames=usernames)
+            # GET request: populate dropdown with users having empty password
+            users = conn.execute("SELECT username FROM users WHERE password=''").fetchall()
+            usernames = [row["username"] for row in users]
+            conn.close()
+            return render_template("signup.html", usernames=usernames)
 
 @app.route("/logout")
 def logout():
