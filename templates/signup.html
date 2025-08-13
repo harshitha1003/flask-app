@@ -4,111 +4,71 @@
 <head>
   <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin />
   <link rel="stylesheet" as="style" onload="this.rel='stylesheet'"
-    href="https://fonts.googleapis.com/css2?display=swap&family=Inter:wght@400;500;700;900&family=Noto+Sans:wght@400;500;700;900" />
+    href="https://fonts.googleapis.com/css2?display=swap&amp;family=Inter:wght@400;500;700;900" />
   <title>Sign Up</title>
-  <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 </head>
 
-<body>
-  <div class="relative flex size-full min-h-screen flex-col bg-white group/design-root overflow-x-hidden"
-    style='font-family: Inter, "Noto Sans", sans-serif;'>
-    <div class="layout-container flex h-full grow flex-col">
+<body class="bg-white font-sans">
+  <div class="min-h-screen flex flex-col justify-center items-center">
+    <div class="w-full max-w-md p-8 border border-gray-200 rounded-lg shadow-md">
+      <h2 class="text-2xl font-bold text-center mb-6">Create Your Account</h2>
 
-      <!-- HEADER -->
-      <header
-        class="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#f0f2f5] px-10 py-3">
-        <div class="flex items-center gap-4 text-[#111418]">
-          <div class="size-4">
-            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <g clip-path="url(#clip0_6_319)">
-                <path
-                  d="M8.57829 8.57829C5.52816 11.6284 3.451 15.5145 2.60947 19.7452C1.76794 23.9758 2.19984 28.361 3.85056 32.3462C5.50128 36.3314 8.29667 39.7376 11.8832 42.134C15.4698 44.5305 19.6865 45.8096 24 45.8096C28.3135 45.8096 32.5302 44.5305 36.1168 42.134C39.7033 39.7375 42.4987 36.3314 44.1494 32.3462C45.8002 28.361 46.2321 23.9758 45.3905 19.7452C44.549 15.5145 42.4718 11.6284 39.4217 8.57829L24 24L8.57829 8.57829Z"
-                  fill="currentColor"></path>
-              </g>
-              <defs>
-                <clipPath id="clip0_6_319">
-                  <rect width="48" height="48" fill="white"></rect>
-                </clipPath>
-              </defs>
-            </svg>
-          </div>
-          <h2 class="text-[#111418] text-lg font-bold leading-tight tracking-[-0.015em]">peer</h2>
-        </div>
-      </header>
-
-      <!-- FLASH MESSAGES -->
+      <!-- Flash messages -->
       {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
-      <div class="px-6 pt-4">
         {% for category, message in messages %}
-        <div class="mb-2 p-3 rounded-lg
-            {% if category == 'success' %}bg-green-100 text-green-800 border border-green-300
-            {% elif category == 'error' %}bg-red-100 text-red-800 border border-red-300
-            {% else %}bg-gray-100 text-gray-800 border border-gray-300{% endif %}">
-          {{ message }}
-        </div>
+          <div class="mb-3 p-2 rounded
+            {% if category=='success' %}bg-green-200 text-green-800
+            {% elif category=='error' %}bg-red-200 text-red-800
+            {% elif category=='info' %}bg-blue-100 text-blue-800
+            {% endif %}">
+            {{ message }}
+          </div>
         {% endfor %}
-      </div>
       {% endif %}
       {% endwith %}
 
-      <!-- SIGNUP FORM -->
-      <div class="flex flex-1 justify-center py-5 px-4 sm:px-6 lg:px-8">
-        <form method="POST" action="{{ url_for('signup') }}"
-          class="layout-content-container flex flex-col w-full max-w-md bg-white shadow-md rounded-lg py-5 px-6">
+      <form method="POST" action="{{ url_for('signup') }}" class="space-y-4">
 
-          <h2 class="text-[#111418] text-[28px] font-bold leading-tight text-center pb-3 pt-5">
-            Sign up
-          </h2>
+        <!-- Dropdown for existing usernames with empty passwords -->
+        {% if usernames %}
+        <div>
+          <label for="username" class="block mb-1 text-sm font-medium text-gray-700">Select your username</label>
+          <select name="username" id="username"
+            class="w-full border rounded-lg px-4 py-3 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400">
+            {% for user in usernames %}
+            <option value="{{ user['username'] }}">{{ user['username'] }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% else %}
+        <!-- Text input if no usernames with empty password -->
+        <div>
+          <input type="text" name="username" placeholder="Username" required
+            class="w-full border rounded-lg px-4 py-3 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400" />
+        </div>
+        {% endif %}
 
-          <!-- Roll Number -->
-          <div class="py-3">
-            <label class="flex flex-col w-full">
-              <p class="text-[#111418] text-base font-medium pb-2">Roll Number</p>
-              <input type="text" name="roll_no" placeholder="Enter your roll number" required
-                class="form-input w-full rounded-lg border border-[#dbe0e6] h-14 px-4 placeholder:text-[#60758a]" />
-            </label>
-          </div>
+        <!-- Password input -->
+        <div>
+          <input type="password" name="password" placeholder="Password" required
+            class="w-full border rounded-lg px-4 py-3 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400" />
+        </div>
 
-<!-- Username Dropdown -->
-<div class="py-3">
-  <label class="flex flex-col w-full">
-    <p class="text-[#111418] text-base font-medium pb-2">Username</p>
-    <select name="username" required>
-  {% for uname in usernames %}
-  <option value="{{ uname }}">{{ uname }}</option>
-  {% endfor %}
-</select>
+        <!-- Submit button -->
+        <button type="submit"
+          class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition-colors">
+          Sign Up
+        </button>
 
-  </label>
-</div>
+        <!-- Login link -->
+        <p class="text-center text-sm text-gray-500 mt-2">
+          Already have an account?
+          <a href="{{ url_for('login') }}" class="underline text-blue-600">Log in</a>
+        </p>
 
-<!-- Password -->
-<div class="py-3">
-  <label class="flex flex-col w-full">
-    <p class="text-[#111418] text-base font-medium pb-2">Password</p>
-    <input type="password" name="password" placeholder="Set a password" required
-      class="form-input w-full rounded-lg border border-[#dbe0e6] h-14 px-4 placeholder:text-[#60758a]" />
-  </label>
-</div>
-
-<!-- Submit Button -->
-<div class="py-3">
-  <button type="submit"
-    class="flex items-center justify-center rounded-lg h-14 w-full bg-[#0d80f2] text-white font-bold hover:bg-[#0a6ed1]">
-    Sign Up
-  </button>
-</div>
-
-<!-- Login link -->
-<p class="text-[#60758a] text-sm text-center underline pt-2">
-  <a href="{{ url_for('login') }}">Already have an account? Sign in</a>
-</p>
-
-        </form>
-      </div>
-
+      </form>
     </div>
   </div>
 </body>
