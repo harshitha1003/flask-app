@@ -48,10 +48,11 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             roll_no TEXT,
             username TEXT UNIQUE NOT NULL,
-            password TEXT,
+            password TEXT NOT NULL,
             is_logged_in INTEGER DEFAULT 0
         )
     """)
+    ...
     # Questions table
     conn.execute("""
         CREATE TABLE IF NOT EXISTS questions (
@@ -76,9 +77,8 @@ def init_db():
     """)
 
     # Predefined users
-    predefined_usernames = ["user1", "user2", "user3", "user4"]
+predefined_usernames = ["user1", "user2", "user3", "user4"]
     default_password = hash_password("12345")
-
     for uname in predefined_usernames:
         try:
             conn.execute(
@@ -87,7 +87,6 @@ def init_db():
             )
         except sqlite3.IntegrityError:
             pass
-
     conn.commit()
     conn.close()
 
