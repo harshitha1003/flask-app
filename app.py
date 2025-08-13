@@ -42,6 +42,8 @@ def login_required(f):
 # -----------------------
 def init_db():
     conn = get_db_connection()
+
+    # Users table
     conn.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -51,6 +53,8 @@ def init_db():
             is_logged_in INTEGER DEFAULT 0
         )
     """)
+
+    # Questions table
     conn.execute("""
         CREATE TABLE IF NOT EXISTS questions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -59,6 +63,8 @@ def init_db():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+
+    # Answers table
     conn.execute("""
         CREATE TABLE IF NOT EXISTS answers (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -72,21 +78,22 @@ def init_db():
         )
     """)
 
-    # Predefined users with default password 12345
-     predefined_usernames = ["user1", "user2", "user3", "user4"]
-     default_password = hash_password("12345")  # common password for all
+    # Predefined users with common password
+    predefined_usernames = ["user1", "user2", "user3", "user4"]
+    default_password = hash_password("12345")  # common password
 
-     for uname in predefined_usernames:
-     try:
-        conn.execute(
-            "INSERT INTO users (username, password) VALUES (?, ?)",
-            (uname, default_password)
-        )
-     except sqlite3.IntegrityError:
-        pass
+    for uname in predefined_usernames:
+        try:
+            conn.execute(
+                "INSERT INTO users (username, password) VALUES (?, ?)",
+                (uname, default_password)
+            )
+        except sqlite3.IntegrityError:
+            pass
 
     conn.commit()
     conn.close()
+
 
 init_db()
 
