@@ -57,12 +57,14 @@
           <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
             <label class="flex flex-col min-w-40 flex-1">
               <p class="text-[#111418] text-base font-medium leading-normal pb-2">Username</p>
-              <select name="username" required class="form-input ...">
+              <select name="username" required class="flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#111418]
+             focus:outline-0 focus:ring-0 border border-[#dbe0e6] bg-white
+             focus:border-[#dbe0e6] h-14 placeholder:text-[#60758a]
+             p-[15px] text-base font-normal leading-normal">
                 {% for uname in usernames %}
                 <option value="{{ uname }}">{{ uname }}</option>
                 {% endfor %}
               </select>
-
             </label>
           </div>
 
@@ -70,18 +72,22 @@
           <div class="flex max-w-[480px] flex-wrap items-end gap-4 px-4 py-3">
             <label class="flex flex-col min-w-40 flex-1">
               <p class="text-[#111418] text-base font-medium leading-normal pb-2">Password</p>
-              <input type="password" name="password" placeholder="Set a password" required
-                class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#111418] focus:outline-0 focus:ring-0 border border-[#dbe0e6] bg-white focus:border-[#dbe0e6] h-14 placeholder:text-[#60758a] p-[15px] text-base font-normal leading-normal" />
+              <input type="password" name="password" placeholder="Set a password" required class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#111418]
+             focus:outline-0 focus:ring-0 border border-[#dbe0e6] bg-white
+             focus:border-[#dbe0e6] h-14 placeholder:text-[#60758a]
+             p-[15px] text-base font-normal leading-normal" />
             </label>
           </div>
 
           <!-- Submit -->
-          <div class="flex px-4 py-3">
-            <button type="submit"
-              class="flex items-center justify-center rounded-lg h-10 px-8 bg-[#0d80f2] text-white text-sm font-bold leading-normal tracking-[0.015em] cursor-pointer">
+          <div class="flex max-w-[480px] px-4 py-3">
+            <button type="submit" class="flex items-center justify-center rounded-lg h-14 w-full
+           bg-[#0d80f2] text-white text-sm font-bold leading-normal
+           tracking-[0.015em] cursor-pointer">
               <span class="truncate">Sign Up</span>
             </button>
           </div>
+
 
           <!-- Login link -->
           <p class="text-[#60758a] text-sm font-normal leading-normal pb-3 pt-1 px-4 text-center underline">
