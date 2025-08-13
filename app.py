@@ -65,6 +65,7 @@ def login():
         hashed_pw = hash_password(password)
 
         conn = get_db_connection()
+        # First, get user by username only
         user = conn.execute(
             "SELECT * FROM users WHERE username=?",
             (username,)
@@ -107,6 +108,7 @@ def login():
         conn.close()
 
     return render_template("login.html")
+
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
