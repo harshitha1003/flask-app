@@ -65,46 +65,46 @@ def login():
         hashed_pw = hash_password(password)
 
         conn = get_db_connection()
-# First, get user by username only
-user = conn.execute(
-    "SELECT * FROM users WHERE username=?",
-    (username,)
-).fetchone()
-
-if user:
-    stored_pw = user["password"]
-
-    if stored_pw == hashed_pw:
-        # Already hashed and matches
-        login_ok = True
-    elif stored_pw == password:
-        # Old plain-text password, update to hashed
-        conn.execute(
-            "UPDATE users SET password=? WHERE username=?",
-            (hashed_pw, username)
-        )
-        conn.commit()
-        login_ok = True
-    else:
-        login_ok = False
-
-    if login_ok:
-        conn.execute(
-            "UPDATE users SET is_logged_in = 1 WHERE username = ?",
+        user = conn.execute(
+            "SELECT * FROM users WHERE username=?",
             (username,)
-        )
-        conn.commit()
+        ).fetchone()
+
+        if user:
+            stored_pw = user["password"]
+
+            if stored_pw == hashed_pw:
+                # Already hashed and matches
+                login_ok = True
+            elif stored_pw == password:
+                # Old plain-text password, update to hashed
+                conn.execute(
+                    "UPDATE users SET password=? WHERE username=?",
+                    (hashed_pw, username)
+                )
+                conn.commit()
+                login_ok = True
+            else:
+                login_ok = False
+
+            if login_ok:
+                conn.execute(
+                    "UPDATE users SET is_logged_in = 1 WHERE username = ?",
+                    (username,)
+                )
+                conn.commit()
+                conn.close()
+
+                session.clear()
+                session["username"] = username
+                flash("Login successful!", "success")
+                return redirect(url_for("home"))
+            else:
+                flash("Invalid username or password.", "error")
+        else:
+            flash("Invalid username or password.", "error")
+
         conn.close()
-
-        session.clear()
-        session["username"] = username
-        flash("Login successful!", "success")
-        return redirect(url_for("home"))
-    else:
-        flash("Invalid username or password.", "error")
-else:
-    flash("Invalid username or password.", "error")
-
 
     return render_template("login.html")
 
