@@ -46,14 +46,7 @@
           {% for ans in q.answers %}
             <div class="ml-4 mb-2 p-2 bg-gray-50 rounded flex justify-between items-center">
               <span><strong>{{ ans.username }}:</strong> {{ ans.answer }}</span>
-              <div class="flex items-center gap-2">
-                <span class="text-green-600 font-bold">{{ ans.karma }} 💚</span>
-                {% if ans.username != username %}
-                  <form method="POST" action="{{ url_for('give_karma', answer_id=ans.id) }}">
-                    <button class="text-blue-600 text-sm">Reward</button>
-                  </form>
-                {% endif %}
-              </div>
+              <span class="text-green-600 font-bold">{{ ans.karma }} 💚</span>
             </div>
           {% endfor %}
 
