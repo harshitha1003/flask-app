@@ -1,12 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <title>Questions</title>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 </head>
-
 <body class="bg-gray-50 font-sans min-h-screen">
   <header class="flex items-center justify-between bg-white shadow p-4">
     <div class="flex items-center gap-4">
@@ -23,57 +21,37 @@
     </div>
   </header>
 
-  <main class="p-6 max-w-3xl mx-auto">
-    <h2 class="text-2xl font-bold mb-4">Post a Question</h2>
-    
-    <!-- Flash messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      {% for category, message in messages %}
-        <div class="mb-3 p-2 rounded
-          {% if category=='success' %}bg-green-200 text-green-800
-          {% elif category=='error' %}bg-red-200 text-red-800
-          {% elif category=='info' %}bg-blue-100 text-blue-800
-          {% endif %}">
-          {{ message }}
-        </div>
-      {% endfor %}
-    {% endif %}
-    {% endwith %}
+<main class="p-6 max-w-3xl mx-auto">
+  <h2 class="text-2xl font-bold mb-4">All Questions</h2>
 
-    <!-- Post question form -->
-    <form action="{{ url_for('questions') }}" method="POST" class="mb-6 flex gap-2">
-      <input type="text" name="question" placeholder="Type your question..."
-        class="flex-1 border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" required>
-      <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
-        Post
-      </button>
-    </form>
+  {% if questions %}
+    {% for q in questions %}
+      <div class="bg-white p-4 mb-4 rounded shadow">
+        <p class="font-medium">{{ q.question }}</p>
+        <p class="text-gray-500 text-sm mb-2">{{ q.answers|length }} Answers</p>
 
-    <!-- User's questions -->
-    <h2 class="text-xl font-semibold mb-3">My Questions</h2>
-    <div class="mb-6 space-y-2">
-      {% for q in questions %}
-        {% if q.username == username %}
-          <div class="bg-white p-3 rounded shadow">
-            <p class="font-medium">{{ q.question }}</p>
-            <p class="text-gray-500 text-sm">{{ q.created_at }}</p>
+        {% for ans in q.answers %}
+          <div class="ml-4 mb-2 p-2 bg-gray-50 rounded flex justify-between items-center">
+            <span><strong>{{ ans.username }}:</strong> {{ ans.answer }}</span>
+            <div class="flex items-center gap-2">
+              <span class="text-green-600 font-bold">{{ ans.karma }} 💚</span>
+              <form method="POST" action="{{ url_for('give_karma', answer_id=ans.id) }}">
+                <button class="text-blue-600 text-sm">Reward</button>
+              </form>
+            </div>
           </div>
-        {% endif %}
-      {% endfor %}
-    </div>
+        {% endfor %}
 
-    <!-- All user questions -->
-    <h2 class="text-xl font-semibold mb-3">All Questions</h2>
-    <div class="space-y-2">
-      {% for q in questions %}
-        <div class="bg-white p-3 rounded shadow">
-          <p class="font-medium">{{ q.question }}</p>
-          <p class="text-gray-500 text-sm">By {{ q.username }} | {{ q.created_at }}</p>
-        </div>
-      {% endfor %}
-    </div>
-  </main>
+        <!-- Answer form -->
+        <form method="POST" action="{{ url_for('answer_question', question_id=q.id) }}">
+          <input type="text" name="answer" placeholder="Write your answer..." class="border rounded px-2 py-1 w-full mt-2" required>
+          <button type="submit" class="bg-green-600 text-white px-3 py-1 rounded mt-1">Submit Answer</button>
+        </form>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p class="text-gray-600">No questions posted yet.</p>
+  {% endif %}
+</main>
 </body>
-
 </html>
