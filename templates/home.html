@@ -1,0 +1,180 @@
+<html>
+  <head>
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="" />
+    <link
+      rel="stylesheet"
+      as="style"
+      onload="this.rel='stylesheet'"
+      href="https://fonts.googleapis.com/css2?display=swap&amp;family=Inter%3Awght%40400%3B500%3B700%3B900&amp;family=Noto+Sans%3Awght%40400%3B500%3B700%3B900"
+    />
+
+    <title>Stitch Design</title>
+    <link rel="icon" type="image/x-icon" href="data:image/x-icon;base64," />
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  </head>
+  <body>
+    <div class="relative flex size-full min-h-screen flex-col bg-[#f8fbfa] group/design-root overflow-x-hidden" style='font-family: Inter, "Noto Sans", sans-serif;'>
+      <div class="layout-container flex h-full grow flex-col">
+        <header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#e8f2ec] px-10 py-3">
+          <div class="flex items-center gap-8">
+            <div class="flex items-center gap-4 text-[#0e1a13]">
+              <div class="size-4">
+                <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M42.4379 44C42.4379 44 36.0744 33.9038 41.1692 24C46.8624 12.9336 42.2078 4 42.2078 4L7.01134 4C7.01134 4 11.6577 12.932 5.96912 23.9969C0.876273 33.9029 7.27094 44 7.27094 44L42.4379 44Z"
+                    fill="currentColor"
+                  ></path>
+                </svg>
+              </div>
+              <h2 class="text-[#0e1a13] text-lg font-bold leading-tight tracking-[-0.015em]">Peer Support</h2>
+            </div>
+            <div class="flex items-center gap-9">
+              <a class="text-[#0e1a13] text-sm font-medium leading-normal" href="#">Home</a>
+              <a class="text-[#0e1a13] text-sm font-medium leading-normal" href="#">Questions</a>
+              <a class="text-[#0e1a13] text-sm font-medium leading-normal" href="#">People</a>
+              <a class="text-[#0e1a13] text-sm font-medium leading-normal" href="#">Notifications</a>
+            </div>
+          </div>
+          <div class="flex flex-1 justify-end gap-8">
+            <label class="flex flex-col min-w-40 !h-10 max-w-64">
+              <div class="flex w-full flex-1 items-stretch rounded-lg h-full">
+                <div
+                  class="text-[#51946b] flex border-none bg-[#e8f2ec] items-center justify-center pl-4 rounded-l-lg border-r-0"
+                  data-icon="MagnifyingGlass"
+                  data-size="24px"
+                  data-weight="regular"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="currentColor" viewBox="0 0 256 256">
+                    <path
+                      d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"
+                    ></path>
+                  </svg>
+                </div>
+                <input
+                  placeholder="Search"
+                  class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#0e1a13] focus:outline-0 focus:ring-0 border-none bg-[#e8f2ec] focus:border-none h-full placeholder:text-[#51946b] px-4 rounded-l-none border-l-0 pl-2 text-base font-normal leading-normal"
+                  value=""
+                />
+              </div>
+            </label>
+            <div
+              class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10"
+              style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDuEDw-XWPtd0kxH4qMMvj0_BCV1pHCieSPdgfaGJFNBYncXvDqnozilvuv_3ZY8XHQxlx0DDigYPG6O2_bdn4E604QS2dw_2wdY82RYoGsh4v4Oy18bXU6dYN2t0zU8nksR8SjDcDRkPeY8V1vPCSva4KJqdoR5O21uc0PF4TTaokjJWT5eBRvJZbP36cK1QAJR_auhP1iKckTYrIyIQi7DY1dgN6HGYvPrhe9NFOVo8cwMGpUbc8vBawCw35mNVgFz6N59OUWwxfF");'
+            ></div>
+<div class="flex items-center gap-2">
+    <span class="text-[#0e1a13] font-medium">Hi, {{ username }}</span>
+    <a href="{{ url_for('logout') }}" class="text-red-500 text-sm">Logout</a>
+</div>
+
+          </div>
+        </header>
+        <div class="gap-1 px-6 flex flex-1 justify-center py-5">
+          <div class="layout-content-container flex flex-col max-w-[920px] flex-1">
+            <div class="flex flex-wrap justify-between gap-3 p-4">
+              <p class="text-[#0e1a13] tracking-light text-[32px] font-bold leading-tight min-w-72">My Questions</p>
+              <button
+                class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-8 px-4 bg-[#e8f2ec] text-[#0e1a13] text-sm font-medium leading-normal"
+              >
+                <span class="truncate">+ New Question</span>
+              </button>
+            </div>
+            <div class="flex items-center gap-4 bg-[#f8fbfa] px-4 min-h-[72px] py-2 justify-between">
+              <div class="flex flex-col justify-center">
+                <p class="text-[#0e1a13] text-base font-medium leading-normal line-clamp-1">How do I deal with stress at work?</p>
+                <p class="text-[#51946b] text-sm font-normal leading-normal line-clamp-2">10 answers</p>
+              </div>
+              <div class="shrink-0"><p class="text-[#51946b] text-sm font-normal leading-normal">2d</p></div>
+            </div>
+            <div class="flex items-center gap-4 bg-[#f8fbfa] px-4 min-h-[72px] py-2 justify-between">
+              <div class="flex flex-col justify-center">
+                <p class="text-[#0e1a13] text-base font-medium leading-normal line-clamp-1">What are some effective time management techniques?</p>
+                <p class="text-[#51946b] text-sm font-normal leading-normal line-clamp-2">5 answers</p>
+              </div>
+              <div class="shrink-0"><p class="text-[#51946b] text-sm font-normal leading-normal">5d</p></div>
+            </div>
+            <div class="flex items-center gap-4 bg-[#f8fbfa] px-4 min-h-[72px] py-2 justify-between">
+              <div class="flex flex-col justify-center">
+                <p class="text-[#0e1a13] text-base font-medium leading-normal line-clamp-1">How can I improve my communication skills?</p>
+                <p class="text-[#51946b] text-sm font-normal leading-normal line-clamp-2">3 answers</p>
+              </div>
+              <div class="shrink-0"><p class="text-[#51946b] text-sm font-normal leading-normal">1w</p></div>
+            </div>
+            <div class="flex items-center gap-4 bg-[#f8fbfa] px-4 min-h-[72px] py-2 justify-between">
+              <div class="flex flex-col justify-center">
+                <p class="text-[#0e1a13] text-base font-medium leading-normal line-clamp-1">What are the best strategies for conflict resolution?</p>
+                <p class="text-[#51946b] text-sm font-normal leading-normal line-clamp-2">8 answers</p>
+              </div>
+              <div class="shrink-0"><p class="text-[#51946b] text-sm font-normal leading-normal">2w</p></div>
+            </div>
+            <div class="flex items-center gap-4 bg-[#f8fbfa] px-4 min-h-[72px] py-2 justify-between">
+              <div class="flex flex-col justify-center">
+                <p class="text-[#0e1a13] text-base font-medium leading-normal line-clamp-1">How do I stay motivated when working from home?</p>
+                <p class="text-[#51946b] text-sm font-normal leading-normal line-clamp-2">2 answers</p>
+              </div>
+              <div class="shrink-0"><p class="text-[#51946b] text-sm font-normal leading-normal">3w</p></div>
+            </div>
+            <div class="flex items-center gap-4 bg-[#f8fbfa] px-4 min-h-[72px] py-2 justify-between">
+              <div class="flex flex-col justify-center">
+                <p class="text-[#0e1a13] text-base font-medium leading-normal line-clamp-1">What are some tips for effective teamwork?</p>
+                <p class="text-[#51946b] text-sm font-normal leading-normal line-clamp-2">7 answers</p>
+              </div>
+              <div class="shrink-0"><p class="text-[#51946b] text-sm font-normal leading-normal">1m</p></div>
+            </div>
+            <div class="flex items-center gap-4 bg-[#f8fbfa] px-4 min-h-[72px] py-2 justify-between">
+              <div class="flex flex-col justify-center">
+                <p class="text-[#0e1a13] text-base font-medium leading-normal line-clamp-1">How can I build confidence in my abilities?</p>
+                <p class="text-[#51946b] text-sm font-normal leading-normal line-clamp-2">4 answers</p>
+              </div>
+              <div class="shrink-0"><p class="text-[#51946b] text-sm font-normal leading-normal">2m</p></div>
+            </div>
+            <div class="flex items-center gap-4 bg-[#f8fbfa] px-4 min-h-[72px] py-2 justify-between">
+              <div class="flex flex-col justify-center">
+                <p class="text-[#0e1a13] text-base font-medium leading-normal line-clamp-1">What are the key elements of successful leadership?</p>
+                <p class="text-[#51946b] text-sm font-normal leading-normal line-clamp-2">6 answers</p>
+              </div>
+              <div class="shrink-0"><p class="text-[#51946b] text-sm font-normal leading-normal">3m</p></div>
+            </div>
+            <div class="flex items-center gap-4 bg-[#f8fbfa] px-4 min-h-[72px] py-2 justify-between">
+              <div class="flex flex-col justify-center">
+                <p class="text-[#0e1a13] text-base font-medium leading-normal line-clamp-1">How do I handle difficult conversations with colleagues?</p>
+                <p class="text-[#51946b] text-sm font-normal leading-normal line-clamp-2">1 answer</p>
+              </div>
+              <div class="shrink-0"><p class="text-[#51946b] text-sm font-normal leading-normal">4m</p></div>
+            </div>
+            <div class="flex items-center gap-4 bg-[#f8fbfa] px-4 min-h-[72px] py-2 justify-between">
+              <div class="flex flex-col justify-center">
+                <p class="text-[#0e1a13] text-base font-medium leading-normal line-clamp-1">What are some effective ways to give and receive feedback?</p>
+                <p class="text-[#51946b] text-sm font-normal leading-normal line-clamp-2">9 answers</p>
+              </div>
+              <div class="shrink-0"><p class="text-[#51946b] text-sm font-normal leading-normal">5m</p></div>
+            </div>
+          </div>
+          <div class="layout-content-container flex flex-col w-[360px]">
+            <h2 class="text-[#0e1a13] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">FAQ</h2>
+            <div class="flex items-center gap-4 bg-[#f8fbfa] px-4 min-h-14">
+              <p class="text-[#0e1a13] text-base font-normal leading-normal flex-1 truncate">How to ask a question</p>
+            </div>
+            <div class="flex items-center gap-4 bg-[#f8fbfa] px-4 min-h-14">
+              <p class="text-[#0e1a13] text-base font-normal leading-normal flex-1 truncate">How to answer a question</p>
+            </div>
+            <div class="flex items-center gap-4 bg-[#f8fbfa] px-4 min-h-14">
+              <p class="text-[#0e1a13] text-base font-normal leading-normal flex-1 truncate">How to edit your profile</p>
+            </div>
+            <div class="flex items-center gap-4 bg-[#f8fbfa] px-4 min-h-14">
+              <p class="text-[#0e1a13] text-base font-normal leading-normal flex-1 truncate">How to report a problem</p>
+            </div>
+            <h2 class="text-[#0e1a13] text-[22px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-5">Help</h2>
+            <div class="flex items-center gap-4 bg-[#f8fbfa] px-4 min-h-14"><p class="text-[#0e1a13] text-base font-normal leading-normal flex-1 truncate">Contact Support</p></div>
+            <div class="flex items-center gap-4 bg-[#f8fbfa] px-4 min-h-14">
+              <p class="text-[#0e1a13] text-base font-normal leading-normal flex-1 truncate">Community Guidelines</p>
+            </div>
+            <div class="flex items-center gap-4 bg-[#f8fbfa] px-4 min-h-14">
+              <p class="text-[#0e1a13] text-base font-normal leading-normal flex-1 truncate">Terms of Service</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
