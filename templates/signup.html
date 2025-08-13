@@ -40,18 +40,22 @@
         <!-- Username selection -->
         <!-- Dropdown for existing usernames with empty passwords -->
 
-        <div>
+{% if usernames %}
+<div>
   <label for="username" class="block mb-1 text-sm font-medium text-gray-700">Select your username</label>
   <select name="username" id="username"
     class="w-full border rounded-lg px-4 py-3 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400">
-    <option value="user1">user1</option>
-    <option value="user2">user2</option>
-    <option value="user3">user3</option>
-    <option value="user4">user4</option>
+    {% for user in usernames %}
+      <option value="{{ user }}">{{ user }}</option>
+    {% endfor %}
   </select>
 </div>
-
-
+{% else %}
+<div>
+  <input type="text" name="username" placeholder="Username" required
+    class="w-full border rounded-lg px-4 py-3 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400" />
+</div>
+{% endif %}
 
         <!-- Password input -->
         <div>
