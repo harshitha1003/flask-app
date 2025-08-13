@@ -201,6 +201,11 @@ def home():
 @app.route("/logout")
 @login_required
 def logout():
+    conn = get_db_connection()
+    conn.execute("UPDATE users SET is_logged_in = 0 WHERE username=?", (session['username'],))
+    conn.commit()
+    conn.close()
+    
     session.clear()
     flash("You have been logged out.", "info")
     return redirect(url_for("login"))
@@ -238,6 +243,13 @@ def questions():
 
     conn.close()
     return render_template("questions.html", questions=questions_with_answers, username=session["username"])
+@app.route("/people")
+@login_required
+def people():
+    conn = get_db_connection()
+    users = conn.execute("SELECT username FROM users WHERE is_logged_in = 1").fetchall()
+    conn.close()
+    return render_template("people.html", users=[u["username"] for u in users])
 
 @app.route("/answer/<int:question_id>", methods=["POST"])
 @login_required
