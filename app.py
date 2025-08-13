@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 import sqlite3
 import hashlib
 import os
@@ -61,7 +61,10 @@ def index():
 
 @app.route("/home")
 def home():
-    return render_template("home.html")
+    if "username" not in session:
+        flash("Please log in first.", "error")
+        return redirect(url_for("login"))
+    return render_template("home.html", username=session["username"])
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
@@ -110,12 +113,19 @@ def login():
         conn.close()
 
         if user:
+            session["username"] = username  # store username in session
             flash(f"Welcome, {username}!", "success")
             return redirect(url_for("home"))
         else:
             flash("Invalid username or password.", "error")
 
     return render_template("login.html")
+
+@app.route("/logout")
+def logout():
+    session.pop("username", None)
+    flash("You have been logged out.", "info")
+    return redirect(url_for("login"))
 
 # -------------------------------
 # Run server
