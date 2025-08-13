@@ -114,10 +114,22 @@ def signup():
         user = conn.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
 
         if user:
-            flash("Username already exists.", "error")
-            conn.close()
-            return redirect(url_for("signup"))
+            if user["password"] == "":
+                # Set password for selected predefined username
+                conn.execute(
+                    "UPDATE users SET roll_no=?, password=? WHERE username=?",
+                    (roll_no, hashed_pw, username)
+                )
+                conn.commit()
+                flash("Signup successful! Please log in.", "success")
+                conn.close()
+                return redirect(url_for("login"))
+            else:
+                flash("Username already taken.", "error")
+                conn.close()
+                return redirect(url_for("signup"))
         else:
+            # Optional: allow creating completely new username
             conn.execute(
                 "INSERT INTO users (roll_no, username, password) VALUES (?, ?, ?)",
                 (roll_no, username, hashed_pw)
@@ -127,9 +139,16 @@ def signup():
             conn.close()
             return redirect(url_for("login"))
 
-    # GET request
+    # GET request: fetch usernames with empty passwords
+    users = conn.execute("SELECT username FROM users WHERE password=''").fetchall()
+    usernames = [row["username"] for row in users]
+
+    # Fallback if none left
+    if not usernames:
+        usernames = []
+
     conn.close()
-    return render_template("signup.html")
+    return render_template("signup.html", usernames=usernames)
 
 @app.route("/logout")
 def logout():
