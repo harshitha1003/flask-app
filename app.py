@@ -99,10 +99,21 @@ init_db()
 def index():
     return redirect(url_for("login"))
 
-@app.route("/home")
+@app.route("/home", methods=["GET", "POST"])
 @login_required
 def home():
     conn = get_db_connection()
+
+    # Optional: allow posting a question directly from home
+    if request.method == "POST":
+        question_text = request.form.get("question", "").strip()
+        if question_text:
+            conn.execute(
+                "INSERT INTO questions (username, question) VALUES (?, ?)",
+                (session["username"], question_text)
+            )
+            conn.commit()
+            flash("Question posted successfully!", "success")
 
     # Fetch questions posted by current user
     my_questions = conn.execute(
@@ -117,9 +128,14 @@ def home():
             "SELECT id, username, answer, karma FROM answers WHERE question_id=? ORDER BY created_at ASC",
             (q["id"],)
         ).fetchall()
+        # Convert sqlite Row objects to dicts
         q_dict = dict(q)
-        q_dict["answers"] = answers
+        q_dict["answers"] = [dict(a) for a in answers]
         questions_with_answers.append(q_dict)
+
+    conn.close()
+    return render_template("home.html", username=session["username"], questions=questions_with_answers)
+
 
     conn.close()
     return render_template("home.html", username=session["username"], questions=questions_with_answers)
