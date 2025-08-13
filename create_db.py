@@ -1,29 +1,36 @@
 import sqlite3
 
-# Connect to the database (it will create if not exists)
-conn = sqlite3.connect('users.db')
-c = conn.cursor()
+# Connect to (or create) database
+conn = sqlite3.connect("users.db")
+cursor = conn.cursor()
 
-# Create a table for users
-c.execute('''
+# Create table for predefined usernames
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS predefined_usernames (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE
+)
+""")
+
+# Insert predefined usernames
+predefined_usernames = ["unicorn", "phoenix", "dragon", "griffin", "pegasus"]
+
+# Use INSERT OR IGNORE to avoid duplicates if script runs again
+for uname in predefined_usernames:
+    cursor.execute("INSERT OR IGNORE INTO predefined_usernames (username) VALUES (?)", (uname,))
+
+# Create users table
+cursor.execute("""
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     roll_no TEXT NOT NULL,
-    username TEXT UNIQUE NOT NULL,
+    username TEXT NOT NULL UNIQUE,
     password TEXT NOT NULL
 )
-''')
+""")
 
-# Optional: Pre-populate some usernames
-predefined_usernames = ['unicorn', 'phoenix', 'dragon', 'griffin', 'pegasus']
-
-for uname in predefined_usernames:
-    try:
-        c.execute('INSERT INTO users (roll_no, username, password) VALUES (?, ?, ?)',
-                  ('', uname, ''))
-    except sqlite3.IntegrityError:
-        pass  # skip if username already exists
-
+# Commit changes and close
 conn.commit()
 conn.close()
-print("Database created and usernames inserted.")
+
+print("Database created and tables initialized successfully!")
