@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>Home</title>
+  <title>Questions</title>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 </head>
 
@@ -24,8 +24,55 @@
   </header>
 
   <main class="p-6 max-w-3xl mx-auto">
-    <h2 class="text-2xl font-bold mb-4">My Questions</h2>
-    <p class="text-gray-600 mb-6">Click on "Questions" above to see all user questions.</p>
+    <h2 class="text-2xl font-bold mb-4">Post a Question</h2>
+    
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="mb-3 p-2 rounded
+          {% if category=='success' %}bg-green-200 text-green-800
+          {% elif category=='error' %}bg-red-200 text-red-800
+          {% elif category=='info' %}bg-blue-100 text-blue-800
+          {% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    <!-- Post question form -->
+    <form action="{{ url_for('questions') }}" method="POST" class="mb-6 flex gap-2">
+      <input type="text" name="question" placeholder="Type your question..."
+        class="flex-1 border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-400" required>
+      <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+        Post
+      </button>
+    </form>
+
+    <!-- User's questions -->
+    <h2 class="text-xl font-semibold mb-3">My Questions</h2>
+    <div class="mb-6 space-y-2">
+      {% for q in questions %}
+        {% if q.username == username %}
+          <div class="bg-white p-3 rounded shadow">
+            <p class="font-medium">{{ q.question }}</p>
+            <p class="text-gray-500 text-sm">{{ q.created_at }}</p>
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    <!-- All user questions -->
+    <h2 class="text-xl font-semibold mb-3">All Questions</h2>
+    <div class="space-y-2">
+      {% for q in questions %}
+        <div class="bg-white p-3 rounded shadow">
+          <p class="font-medium">{{ q.question }}</p>
+          <p class="text-gray-500 text-sm">By {{ q.username }} | {{ q.created_at }}</p>
+        </div>
+      {% endfor %}
+    </div>
   </main>
 </body>
 
