@@ -17,10 +17,10 @@ def get_db_connection():
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
-# Root route -> redirect to home
 @app.route("/")
 def index():
-    return redirect(url_for("home"))
+    return redirect(url_for("login"))
+
 
 # Home page
 @app.route("/home")
