@@ -79,16 +79,17 @@ def init_db():
     """)
 
     # Predefined users
-    predefined_usernames = ["user1", "user2", "user3", "user4"]
-    default_password = hash_password("12345")
-    for uname in predefined_usernames:
-        try:
-            conn.execute(
-                "INSERT INTO users (username, password) VALUES (?, ?)",
-                (uname, default_password)
-            )
-        except sqlite3.IntegrityError:
-            pass  # already exists
+     predefined_usernames = ["user1", "user2", "user3", "user4"]
+     default_password = hash_password("12345")  # all default password is 12345
+     for uname in predefined_usernames:
+       try:
+        conn.execute(
+            "INSERT INTO users (username, password) VALUES (?, ?)",
+            (uname, default_password)
+        )
+       except sqlite3.IntegrityError:
+        pass
+
 
     conn.commit()
     conn.close()
