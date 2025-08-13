@@ -42,6 +42,7 @@ def login_required(f):
 # -----------------------
 def init_db():
     conn = get_db_connection()
+
     # Users table
     conn.execute("""
         CREATE TABLE IF NOT EXISTS users (
@@ -52,7 +53,7 @@ def init_db():
             is_logged_in INTEGER DEFAULT 0
         )
     """)
-    ...
+
     # Questions table
     conn.execute("""
         CREATE TABLE IF NOT EXISTS questions (
@@ -62,6 +63,7 @@ def init_db():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
+
     # Answers table
     conn.execute("""
         CREATE TABLE IF NOT EXISTS answers (
@@ -77,7 +79,7 @@ def init_db():
     """)
 
     # Predefined users
-predefined_usernames = ["user1", "user2", "user3", "user4"]
+    predefined_usernames = ["user1", "user2", "user3", "user4"]
     default_password = hash_password("12345")
     for uname in predefined_usernames:
         try:
@@ -86,7 +88,8 @@ predefined_usernames = ["user1", "user2", "user3", "user4"]
                 (uname, default_password)
             )
         except sqlite3.IntegrityError:
-            pass
+            pass  # already exists
+
     conn.commit()
     conn.close()
 
@@ -99,42 +102,6 @@ init_db()
 def index():
     return redirect(url_for("login"))
 
-@app.route("/home", methods=["GET", "POST"])
-@login_required
-def home():
-    conn = get_db_connection()
-
-    # Optional: allow posting a question directly from home
-    if request.method == "POST":
-        question_text = request.form.get("question", "").strip()
-        if question_text:
-            conn.execute(
-                "INSERT INTO questions (username, question) VALUES (?, ?)",
-                (session["username"], question_text)
-            )
-            conn.commit()
-            flash("Question posted successfully!", "success")
-
-    # Fetch questions posted by current user
-    my_questions = conn.execute(
-        "SELECT id, question, created_at FROM questions WHERE username=? ORDER BY created_at DESC",
-        (session["username"],)
-    ).fetchall()
-
-    # Attach answers for each question
-    questions_with_answers = []
-    for q in my_questions:
-        answers = conn.execute(
-            "SELECT id, username, answer, karma FROM answers WHERE question_id=? ORDER BY created_at ASC",
-            (q["id"],)
-        ).fetchall()
-        q_dict = dict(q)
-        q_dict["answers"] = [dict(a) for a in answers]
-        questions_with_answers.append(q_dict)
-
-    conn.close()
-    return render_template("home.html", username=session["username"], questions=questions_with_answers)
-
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -146,18 +113,16 @@ def login():
         user = conn.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
         conn.close()
 
-        if user:
-            if user["password"] == hashed_pw:
-                session.clear()
-                session["username"] = username
-                flash("Login successful!", "success")
-                return redirect(url_for("home"))
-            else:
-                flash("Invalid username or password.", "error")
+        if user and user["password"] == hashed_pw:
+            session.clear()
+            session["username"] = username
+            flash("Login successful!", "success")
+            return redirect(url_for("home"))
         else:
             flash("Invalid username or password.", "error")
 
     return render_template("login.html")
+
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
@@ -175,46 +140,56 @@ def signup():
         user = conn.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
 
         if user:
-            if user["password"] == "":
-                conn.execute(
-                    "UPDATE users SET roll_no=?, password=? WHERE username=?",
-                    (roll_no, hashed_pw, username)
-                )
-                conn.commit()
-                flash("Signup successful! Please log in.", "success")
-                conn.close()
-                return redirect(url_for("login"))
-            else:
-                flash("Username already taken.", "error")
-                conn.close()
-                return redirect(url_for("signup"))
-        else:
+            flash("Username already taken.", "error")
+            conn.close()
+            return redirect(url_for("signup"))
+
+        conn.execute(
+            "INSERT INTO users (roll_no, username, password) VALUES (?, ?, ?)",
+            (roll_no, username, hashed_pw)
+        )
+        conn.commit()
+        conn.close()
+        flash("Signup successful! Please log in.", "success")
+        return redirect(url_for("login"))
+
+    conn.close()
+    return render_template("signup.html")
+
+@app.route("/home", methods=["GET", "POST"])
+@login_required
+def home():
+    conn = get_db_connection()
+
+    # Post question from home
+    if request.method == "POST":
+        question_text = request.form.get("question", "").strip()
+        if question_text:
             conn.execute(
-                "INSERT INTO users (roll_no, username, password) VALUES (?, ?, ?)",
-                (roll_no, username, hashed_pw)
+                "INSERT INTO questions (username, question) VALUES (?, ?)",
+                (session["username"], question_text)
             )
             conn.commit()
-            flash("Signup successful! Please log in.", "success")
-            conn.close()
-            return redirect(url_for("login"))
+            flash("Question posted successfully!", "success")
 
-# Only allow new username if it doesn't exist
-user = conn.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
-if user:
-    flash("Username already taken.", "error")
+    # Fetch user's questions with answers
+    my_questions = conn.execute(
+        "SELECT id, question, created_at FROM questions WHERE username=? ORDER BY created_at DESC",
+        (session["username"],)
+    ).fetchall()
+
+    questions_with_answers = []
+    for q in my_questions:
+        answers = conn.execute(
+            "SELECT id, username, answer, karma FROM answers WHERE question_id=? ORDER BY created_at ASC",
+            (q["id"],)
+        ).fetchall()
+        q_dict = dict(q)
+        q_dict["answers"] = [dict(a) for a in answers]
+        questions_with_answers.append(q_dict)
+
     conn.close()
-    return redirect(url_for("signup"))
-
-# Insert new user
-hashed_pw = hash_password(password)
-conn.execute(
-    "INSERT INTO users (roll_no, username, password) VALUES (?, ?, ?)",
-    (roll_no, username, hashed_pw)
-)
-conn.commit()
-flash("Signup successful! Please log in.", "success")
-conn.close()
-return redirect(url_for("login"))
+    return render_template("home.html", username=session["username"], questions=questions_with_answers)
 
 
 @app.route("/logout")
@@ -236,7 +211,7 @@ def people():
 @login_required
 def questions():
     conn = get_db_connection()
-    
+
     if request.method == "POST":
         question_text = request.form.get("question", "").strip()
         if question_text:
@@ -287,7 +262,7 @@ def give_karma(answer_id):
     conn.commit()
     conn.close()
     flash("Karma point added!", "success")
-    return redirect(url_for("home"))  # show karma update only on home
+    return redirect(url_for("home"))
 
 # -----------------------
 # Run app
