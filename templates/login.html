@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-  <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin />
-  <link rel="stylesheet" as="style" onload="this.rel='stylesheet'"
-    href="https://fonts.googleapis.com/css2?display=swap&amp;family=Inter:wght@400;500;700;900&amp;family=Noto+Sans:wght@400;500;700;900" />
+  <meta charset="UTF-8">
   <title>Login</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" as="style" onload="this.rel='stylesheet'"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Noto+Sans:wght@400;500;700;900&display=swap" />
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 </head>
 
@@ -16,37 +17,32 @@
 
       <!-- Flash messages -->
       {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-      {% for category, message in messages %}
-<div
-  class="mb-3 p-2 rounded
-    {% if category=='success' %}bg-green-200 text-green-800
-    {% elif category=='error' %}bg-red-200 text-red-800
-    {% elif category=='info' %}bg-blue-100 text-blue-800
-    {% endif %}">
-  {{ message }}
-</div>
-
-      {% endfor %}
-      {% endif %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="mb-3 p-2 rounded
+              {% if category=='success' %}bg-green-200 text-green-800
+              {% elif category=='error' %}bg-red-200 text-red-800
+              {% elif category=='info' %}bg-blue-100 text-blue-800
+              {% endif %}">
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
       {% endwith %}
 
       <form method="POST" action="{{ url_for('login') }}" class="space-y-4">
 
-       <!-- Username -->
-<div>
-  <input type="text" name="username" placeholder="Username" required autocomplete="username"
-    class="w-full border rounded-lg px-4 py-3 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400" />
-</div>
+        <!-- Username -->
+        <div>
+          <input type="text" name="username" placeholder="Username" required autocomplete="username"
+            class="w-full border rounded-lg px-4 py-3 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400" />
+        </div>
 
-<!-- Password -->
-<div>
-  <input type="password" name="password" placeholder="Password" required autocomplete="current-password"
-    class="w-full border rounded-lg px-4 py-3 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400" />
-</div>
-
-
-
+        <!-- Password -->
+        <div>
+          <input type="password" name="password" placeholder="Password" required autocomplete="current-password"
+            class="w-full border rounded-lg px-4 py-3 bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400" />
+        </div>
 
         <!-- Forgot password -->
         <p class="text-sm text-gray-500 text-right underline">
