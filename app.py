@@ -3,20 +3,19 @@ import sqlite3
 import hashlib
 import os
 
+# -----------------------
+# Flask app setup
+# -----------------------
 app = Flask(__name__)
-
-# -------------------------------
-# Config for sessions
-# -------------------------------
 app.secret_key = os.environ.get("SECRET_KEY", "super_secret_key_123")
-app.config["SESSION_COOKIE_SECURE"] = False  # True if HTTPS
+app.config["SESSION_COOKIE_SECURE"] = False
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
 DB_PATH = "users.db"
 
-# -------------------------------
-# DB helper
-# -------------------------------
+# -----------------------
+# Helpers
+# -----------------------
 def get_db_connection():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
@@ -25,9 +24,9 @@ def get_db_connection():
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
-# -------------------------------
+# -----------------------
 # Initialize DB and predefined usernames
-# -------------------------------
+# -----------------------
 def init_db():
     conn = get_db_connection()
     conn.execute("""
@@ -47,9 +46,11 @@ def init_db():
     conn.commit()
     conn.close()
 
-# -------------------------------
+init_db()
+
+# -----------------------
 # Routes
-# -------------------------------
+# -----------------------
 @app.route("/")
 def index():
     if "username" in session:
@@ -72,9 +73,10 @@ def login():
 
         conn = get_db_connection()
         user = conn.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
+
         if user:
             if user["password"] == "":
-                flash("Password not set for this username! Please sign up first.", "error")
+                flash("Password not set! Please sign up first.", "error")
             elif user["password"] == hashed_pw:
                 conn.execute("UPDATE users SET is_logged_in=1 WHERE username=?", (username,))
                 conn.commit()
@@ -134,12 +136,11 @@ def signup():
             flash("Signup successful! You are now logged in.", "success")
             return redirect(url_for("home"))
 
-    # GET request: populate dropdown with users having empty password
+    # GET request: populate dropdown with usernames that have empty password
     users = conn.execute("SELECT username FROM users WHERE password=''").fetchall()
     usernames = [row["username"] for row in users]
     conn.close()
     return render_template("signup.html", usernames=usernames)
-
 
 @app.route("/logout")
 def logout():
@@ -159,15 +160,13 @@ def people():
         return redirect(url_for("login"))
 
     conn = get_db_connection()
-    users = conn.execute("SELECT * FROM users WHERE username = ?", (username,)).fetchall()
+    users = conn.execute("SELECT * FROM users").fetchall()  # fixed
     conn.close()
     return render_template("people.html", users=users)
 
-# -------------------------------
-# Run app
-# -------------------------------
+# -----------------------
+# Run app for Render
+# -----------------------
 if __name__ == "__main__":
-    import os
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
-
