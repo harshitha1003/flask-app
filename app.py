@@ -1,28 +1,31 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for
 import sqlite3
-from werkzeug.security import generate_password_hash, check_password_hash
-import os
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "devsecretkey")  # Use env var in production
 
-# Create database table if not exists
+# Initialize database
 def init_db():
     conn = sqlite3.connect("users.db")
     c = conn.cursor()
-    c.execute('''CREATE TABLE IF NOT EXISTS users (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    roll_no TEXT NOT NULL,
-                    username TEXT NOT NULL UNIQUE,
-                    password TEXT NOT NULL
-                )''')
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            roll_no TEXT NOT NULL,
+            username TEXT NOT NULL UNIQUE,
+            password TEXT NOT NULL
+        )
+    """)
     conn.commit()
     conn.close()
+
+init_db()
 
 @app.route("/")
 def index():
     return redirect(url_for("login"))
 
+
+# Signup page
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
     if request.method == "POST":
@@ -30,20 +33,18 @@ def signup():
         username = request.form["username"]
         password = request.form["password"]
 
-        hashed_password = generate_password_hash(password)
-
         conn = sqlite3.connect("users.db")
         c = conn.cursor()
         try:
             c.execute("INSERT INTO users (roll_no, username, password) VALUES (?, ?, ?)",
-                      (roll_no, username, hashed_password))
+                      (roll_no, username, password))
             conn.commit()
         except sqlite3.IntegrityError:
+            # username already exists
             conn.close()
-            return "❌ Username already exists!"
-        conn.close()
+            return "Username al
 
-        return redirect(url_for("login"))
+
 
     # Example usernames for selection
     usernames = ["user1", "user2", "user3"]
