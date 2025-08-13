@@ -3,68 +3,50 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>All Questions</title>
+  <title>Questions</title>
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 </head>
 
-<body class="bg-gray-100 font-sans">
-
-  <!-- Navbar -->
-  <nav class="bg-white shadow-md p-4 flex justify-between items-center">
-    <div class="flex gap-4 items-center">
-      <h1 class="text-lg font-bold">Peer Support</h1>
-      <a href="{{ url_for('home') }}" class="hover:underline">Home</a>
-      <a href="{{ url_for('questions') }}" class="hover:underline font-semibold">Questions</a>
-      <a href="{{ url_for('people') }}" class="hover:underline">People</a>
+<body class="bg-gray-50 font-sans min-h-screen">
+  <header class="flex items-center justify-between bg-white shadow p-4">
+    <div class="flex items-center gap-4">
+      <h1 class="font-bold text-xl">Peer Support</h1>
+      <nav class="flex gap-4">
+        <a href="{{ url_for('home') }}" class="text-gray-700 hover:text-green-600">Home</a>
+        <a href="{{ url_for('questions') }}" class="text-gray-700 hover:text-green-600">Questions</a>
+        <a href="{{ url_for('people') }}" class="text-gray-700 hover:text-green-600">People</a>
+      </nav>
     </div>
-    <div class="flex gap-4 items-center">
-      <span class="text-gray-700">Hi, {{ username }}</span>
-      <a href="{{ url_for('logout') }}" class="text-red-500 hover:underline">Logout</a>
+    <div class="flex items-center gap-4">
+      <span class="text-gray-800 font-medium">Hi, {{ session['username'] }}</span>
+      <a href="{{ url_for('logout') }}" class="text-red-500">Logout</a>
     </div>
-  </nav>
+  </header>
 
-  <!-- Page Content -->
-  <div class="max-w-3xl mx-auto mt-6 p-6 bg-white rounded-lg shadow-md">
-    <h2 class="text-2xl font-bold mb-4 text-gray-700">All Questions</h2>
+  <main class="p-6 max-w-3xl mx-auto">
+    <h2 class="text-2xl font-bold mb-4">All Questions</h2>
 
-    <!-- Flash messages -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <div class="mb-3 p-2 rounded
-            {% if category=='success' %}bg-green-200 text-green-800
-            {% elif category=='error' %}bg-red-200 text-red-800
-            {% elif category=='info' %}bg-blue-100 text-blue-800
-            {% endif %}">
-            {{ message }}
-          </div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
-
-    <!-- New Question Form -->
-    <form method="POST" class="mb-6">
-      <textarea name="question" placeholder="Ask a question..." required
-        class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 mb-2"></textarea>
+    <!-- Form to post new question -->
+    <form method="POST" class="mb-6 flex gap-2">
+      <input type="text" name="question" placeholder="Ask a question..."
+        class="flex-1 px-4 py-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-400" />
       <button type="submit"
-        class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">Post Question</button>
+        class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition">Post</button>
     </form>
 
-    <!-- List of Questions -->
-    {% if questions %}
-      <ul class="space-y-4">
-        {% for q in questions %}
-          <li class="p-4 border rounded-lg bg-gray-50">
-            <p class="font-medium text-gray-800">{{ q['question'] }}</p>
-            <p class="text-sm text-gray-500 mt-1">Posted by {{ q['username'] }} on {{ q['created_at'] }}</p>
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p class="text-gray-500 italic">No questions have been posted yet.</p>
-    {% endif %}
-  </div>
-
+    <!-- Questions list -->
+    <div class="flex flex-col gap-4">
+      {% for q in questions %}
+      <div class="bg-white p-4 rounded shadow">
+        <p class="font-medium">{{ q['username'] }} asked:</p>
+        <p class="text-gray-700 mt-1">{{ q['question'] }}</p>
+        <p class="text-gray-400 text-sm mt-1">{{ q['created_at'] }}</p>
+      </div>
+      {% else %}
+      <p class="text-gray-500">No questions posted yet.</p>
+      {% endfor %}
+    </div>
+  </main>
 </body>
+
 </html>
