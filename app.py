@@ -56,14 +56,14 @@ if not os.path.exists(DB_PATH):
     init_db()
 else:
     try:
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name='users'"
-        )
-        if cursor.fetchone() is None:
-            init_db()
-        conn.close()
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM predefined_usernames")  # optional: clear old data
+    for uname in ["unicorn", "phoenix", "dragon", "griffin", "pegasus"]:
+        cursor.execute("INSERT OR IGNORE INTO predefined_usernames (username) VALUES (?)", (uname,))
+    conn.commit()
+    conn.close()
+
     except:
         init_db()
 
