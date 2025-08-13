@@ -221,13 +221,22 @@ def questions():
             conn.commit()
             flash("Question posted successfully!", "success")
 
-    all_questions = conn.execute(
-        "SELECT q.id, q.username, q.question, q.created_at, "
-        "(SELECT COUNT(*) FROM answers a WHERE a.question_id=q.id) AS answers_count "
-        "FROM questions q ORDER BY q.created_at DESC"
+           all_questions = conn.execute(
+           "SELECT q.id, q.username, q.question, q.created_at FROM questions q ORDER BY q.created_at DESC"
+           ).fetchall()
+
+# Attach answers to each question
+questions_with_answers = []
+for q in all_questions:
+    answers = conn.execute(
+        "SELECT * FROM answers WHERE question_id=? ORDER BY created_at ASC", (q["id"],)
     ).fetchall()
-    conn.close()
-    return render_template("questions.html", questions=all_questions)
+    q_dict = dict(q)
+    q_dict["answers"] = answers
+    questions_with_answers.append(q_dict)
+
+return render_template("questions.html", questions=questions_with_answers, username=session["username"])
+
 
 @app.route("/answer/<int:question_id>", methods=["POST"])
 @login_required
