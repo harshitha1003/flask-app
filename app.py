@@ -198,10 +198,24 @@ def signup():
             conn.close()
             return redirect(url_for("login"))
 
-    users = conn.execute("SELECT username FROM users WHERE password=''").fetchall()
-    usernames = [row["username"] for row in users]
+# Only allow new username if it doesn't exist
+user = conn.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
+if user:
+    flash("Username already taken.", "error")
     conn.close()
-    return render_template("signup.html", usernames=usernames)
+    return redirect(url_for("signup"))
+
+# Insert new user
+hashed_pw = hash_password(password)
+conn.execute(
+    "INSERT INTO users (roll_no, username, password) VALUES (?, ?, ?)",
+    (roll_no, username, hashed_pw)
+)
+conn.commit()
+flash("Signup successful! Please log in.", "success")
+conn.close()
+return redirect(url_for("login"))
+
 
 @app.route("/logout")
 @login_required
